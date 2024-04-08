@@ -20,9 +20,9 @@ let sp = `
         "id": "0-1",
         "vi": 0,
         "vj": 1,
-        "lij": 0,
+        "lij": 100,
         "uij": 1000,
-        "sign": "-",
+        "sign": ">",
         "relation": null
       },
       {
@@ -31,7 +31,7 @@ let sp = `
         "vj": 2,
         "lij": 356,
         "uij": 2918,
-        "sign": ">",
+        "sign": "<>",
         "relation": null
       }
     ]

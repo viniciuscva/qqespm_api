@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QQESPM - Spatial Pattern Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <h1>QQESPM - Spatial Pattern Search</h1>
+
+    <div id="main">
+        <div id="query-region">
+            <div id="left-pannel">
+                <button id="search">Search spatial pattern</button>
+            </div>
+            <div id="drawing">
+            </div>
+        </div>
+        <div id="result-region">
+            <div id="results-table">
+            </div>
+            <div class="folium-map" id="map-visualization">
+                <iframe id="map-iframe" class="map" , src="/map"></iframe>
+            </div>
+        </div>
+    
+        <div class="description">
+            <p id='p-text-description'>
+            </p>
+        </div>
+
+    </div>
+
+    
+
+    <script>
+    window.onload = function () {
+        // searchPattern()
+        document.getElementById("search").onclick = searchPattern
+
+        function searchPattern() {
+            const contentWindow = document.getElementById('map-iframe').contentWindow
+            let mapKey
+
+            Object.keys(contentWindow).forEach((key) => {
+                if (key.startsWith("map")) {
+                    mapKey = key
+                }
+            })
+            const mapa = contentWindow[mapKey]
+            //let bounds = mapa.getBounds()
+            //let [north, east] = [bounds['_northEast']['lat'], bounds['_northEast']['lng']]
+
+
+            sp = '{"vertices": [{"id": 0, "keyword": "school"}, {"id": 1, "keyword": "bakery"}, {"id": 2, "keyword": "restaurant"}], "edges": [{"id": "0-1", "vi": 0, "vj": 1, "lij": 0, "uij": 1000, "sign": "-", "relation": null}, {"id": "1-2", "vi": 1, "vj": 2, "lij": 356, "uij": 2918, "sign": ">", "relation": null}]}'
+
+            fetch("http://127.0.0.1:5000/search", {
+                method: "POST",
+                body: JSON.stringify({'method': 'qqespm', 'spatial_pattern': sp}),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+                }).then(res => res.json())
+                .then(data => data['solutions'])
+                .then(text => document.getElementById('p-text-description').innerHTML = text)
+                // document.getElementById('p-text-description').innerHTML = res;
+        }
+        
+    }
+    </script>
+
+
+</body>
+
+</html>
