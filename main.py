@@ -41,7 +41,7 @@ def call_qqespm():
     spatial_pattern_json = req_data['spatial_pattern']
     print('method selected:', method)
     print('spatial pattern selected:', spatial_pattern_json)
-    sp = qq.SpatialPatternGraph(spatial_pattern_json)
+    sp = qq.SpatialPatternGraph.from_json(spatial_pattern_json)
     solutions, elapsed_time, memory_usage = qq.QQESPM(sp, debug = True)
     print('Total solutions:', len(solutions))
     print('Elapsed time:', elapsed_time)

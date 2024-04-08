@@ -72,8 +72,9 @@ class GeoObj:
         #return distance(lonA, latA, lonB, latB)
     
     def get_data(self):
+        lon, lat = self.item.get('centroid')
         return {'id': self.item.get('osm_id'),
-                'location': self.item.get('centroid'),
+                'location': {'lon': lon, 'lat': lat},
                 'description': str(self.item.get('name')) + ' (' + ','.join(self.keywords()) + ')'}
     
     def get_description(self):
@@ -82,11 +83,17 @@ class GeoObj:
                 'name': self.item.get('name')}
                 
     
-    def relations_with(self, another_geoobj):
-        return compute_all_relations(self.geometry(), another_geoobj.geometry())
+    
     
     def relation(self, another_geoobj):
-        return compute_relation(self.geometry(), another_geoobj.geometry())
+        #return compute_relation(self.geometry(), another_geoobj.geometry())
+        if self.geometry().contains(another_geoobj.geometry()):
+            return 'contains'
+        elif another_geoobj.geometry().contains(self.geometry()):
+            return 'within'
+        elif self.geometry().intersects(another_geoobj.geometry()):
+            return 'intersects'
+        return 'disjoint'
     
     def intersects(self, another_geoobj):
         return self.geometry().intersects(another_geoobj.geometry())

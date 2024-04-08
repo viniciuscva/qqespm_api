@@ -11,7 +11,6 @@ from lat_lon_distance2 import lat_lon_distance
 import itertools
 from time import sleep
 import json
-#from translations import translations
 import numpy as np
 import pandas as pd
 import geopandas
@@ -40,9 +39,9 @@ def generate_ilquadtree(pois, total_bbox_ilq, max_depth = 3, keyword_columns = [
     ilq.insert_elements_from_list(objs[0: int(insertion_fraction*len(objs))+1])
     return ilq
 
-# def translate(word):
-#     global translations
-#     return translations.get(word, word)
+def translate(word):
+    global translations
+    return translations.get(word, word)
 
 def intervals_intersect(x1, y1, x2, y2):
     return (x2 <= x1 <= y2) or (x2 <= y1 <= y2) or (x1 <= x2 <= y1)
@@ -67,23 +66,6 @@ class SpatialVertex:
 
     def __eq__(self, another_vertex):
         return self.id == another_vertex.id and self.keyword == another_vertex.keyword
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
-    def to_dict(self):
-        return {'id': self.id, 'keyword': self.keyword}
-
-    @staticmethod
-    def from_json(json_str):
-        vertex_dict = json.loads(json_str)
-        return SpatialVertex.from_dict(vertex_dict)
-
-    @staticmethod
-    def from_dict(vertex_dict):
-        id = vertex_dict['id']
-        keyword = vertex_dict['keyword']
-        return SpatialVertex(id, keyword)
 
     @staticmethod
     def from_id(id, vertices):
@@ -134,40 +116,8 @@ class SpatialEdge:
                 label += f"minimum distance: {round(self.constraint['lij'],3)}\n"
             label += f"maximum distance: {round(self.constraint['uij'],3)}\n"
         if relation is not None:
-            label += f"{self.constraint['relation']}\n"
+            label += f"{translate(self.constraint['relation'])}\n"
         return label[:-1]
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
-    def to_dict(self):
-        return {
-                'id': self.id,
-                'vi': self.vi.id,
-                'vj': self.vj.id,
-                'lij': self.constraint['lij'],
-                'uij': self.constraint['uij'],
-                'sign': self.constraint['sign'],
-                'relation': self.constraint['relation']
-        }
-
-    @staticmethod
-    def from_json(json_str, vertices):
-        edge_dict = json.loads(json_str)
-        return SpatialEdge.from_dict(edge_dict, vertices)
-
-    @staticmethod
-    def from_dict(edge_dict, vertices):
-        id = edge_dict['id']
-        vi = edge_dict['vi']
-        vj = edge_dict['vj']
-        lij = edge_dict['lij']
-        uij = edge_dict['uij']
-        sign = edge_dict['sign']
-        relation = edge_dict['relation']
-        vi = SpatialVertex.from_id(vi, vertices)
-        vj = SpatialVertex.from_id(vj, vertices)
-        return SpatialEdge(id, vi, vj, lij, uij, sign, relation)
     
     @staticmethod
     def get_edge_by_id(edges, id):
@@ -213,7 +163,36 @@ class SpatialPatternGraph:
     def __init__(self, *args):
         # vertices should be a list of SpatialVertex objects 
         # edges should be a list of SpatialEdge objects
-        vertices, edges = args
+        if len(args) == 2:
+            vertices, edges = args
+            self.pattern_type = 'simple_graph'
+            self.vertices = vertices
+            self.edges = edges
+            self.neighbors = defaultdict(list)
+            self.pairs_to_edges = defaultdict(dict)
+            for edge in edges:
+                self.neighbors[edge.vi].append(edge.vj)
+                self.neighbors[edge.vj].append(edge.vi)
+                self.pairs_to_edges[edge.vi][edge.vj] = edge
+                self.pairs_to_edges[edge.vj][edge.vi] = edge
+        elif len(args) == 1:
+            self.from_json(args[0])
+
+    def from_json(self, json_str):
+        sp_dict = json.loads(json_str)
+        vertices = []
+        for vertex_id, vertex_keyword in sp_dict['vertices'].items():
+            vertices.append(SpatialVertex(int(vertex_id), vertex_keyword))
+        edges = []
+        for edge_id, edge_data in sp_dict['edges'].items():
+            edges.append(SpatialEdge(edge_id, 
+                                     SpatialVertex.from_id(edge_data['vi'], vertices),
+                                     SpatialVertex.from_id(edge_data['vj'], vertices),
+                                     float(edge_data['lij']),
+                                     float(edge_data['uij']),
+                                     edge_data['sign'],
+                                     edge_data['relation']
+                        ))
         self.pattern_type = 'simple_graph'
         self.vertices = vertices
         self.edges = edges
@@ -224,32 +203,6 @@ class SpatialPatternGraph:
             self.neighbors[edge.vj].append(edge.vi)
             self.pairs_to_edges[edge.vi][edge.vj] = edge
             self.pairs_to_edges[edge.vj][edge.vi] = edge
-
-    @staticmethod
-    def from_json(json_str):
-        sp_dict = json.loads(json_str)
-        
-        vertices = sp_dict['vertices']
-        for i, vertex in enumerate(vertices):
-            vertices[i] = SpatialVertex.from_dict(vertices[i])
-
-        edges = sp_dict['edges']
-        for i, edge in enumerate(edges):
-            edges[i] = SpatialEdge.from_dict(edges[i], vertices)
-
-        return SpatialPatternGraph(vertices, edges)
-
-    def to_dict(self):
-        ordered_vertices = sorted(self.vertices, key = lambda e: e.id)
-        ordered_edges = sorted(self.edges, key = lambda e: e.id)
-        sp_dict = {
-            "vertices": [v.to_dict() for v in ordered_vertices],
-            "edges": [e.to_dict() for e in ordered_edges]
-        }
-        return sp_dict
-
-    def to_json(self, indent = None):
-        return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)#.encode('utf8').decode()
     
     
     def __str__(self):
@@ -273,6 +226,26 @@ class SpatialPatternGraph:
 
     def __lt__(self, another):
         return self.__hash__() < another.__hash__()
+
+    def to_json(self, indent = None):
+        ordered_vertices = sorted(self.vertices, key = lambda e: e.id)
+        ordered_edges = sorted(self.edges, key = lambda e: e.id)
+        sp_dict = {
+            "vertices": {
+                v.id: v.keyword for v in ordered_vertices
+            },
+            "edges": {
+                e.id: {
+                    "vi": e.vi.id,
+                    "vj": e.vj.id,
+                    "lij": e.constraint['lij'],
+                    "uij": e.constraint['uij'],
+                    "sign": e.constraint['sign'],
+                    "relation": e.constraint['relation'],
+                } for e in ordered_edges
+            },
+        }
+        return json.dumps(sp_dict, indent=indent, ensure_ascii=False)#.encode('utf8').decode()
     
 
     
