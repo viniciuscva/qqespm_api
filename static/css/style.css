@@ -15,11 +15,36 @@ h1{
 
 #main {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    justify-content: center;
+    /* gap: 1rem; */
+}
+
+#query-region, #result-region {
+    display: flex;
+    flex-direction: row;
+    align-items: left;
+    justify-content: left;
+    /* gap: 1rem; */
+    height: 40vh;
+    width: 100%;
+}
+
+#result-region {
+    height: 60vh;
+}
+
+#left-pannel, #results-table {
+    width: 30%;
 }
 
 #map-iframe {
     min-width: 45vw;
-    min-height: 50vh;
+    min-height: 35vh;
+}
+
+div {
+    margin: 0;
+    border: 5px solid #000;
 }
