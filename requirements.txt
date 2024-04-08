@@ -1,0 +1,13 @@
+numpy
+pandas
+matplotlib
+pyqtree
+geopandas
+geojson
+shapely
+jupyterlab
+folium
+streamlit
+streamlit-folium
+flask
+requests
