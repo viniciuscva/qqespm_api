@@ -39,12 +39,20 @@ h1{
     width: 30%;
 }
 
+#drawing, #map-visualization {
+    width: 70%;
+    align-items: center;
+}
+
+
+
 #map-iframe {
-    min-width: 45vw;
+    min-width: 55vw;
     min-height: 35vh;
+    margin: 5%;
 }
 
 div {
     margin: 0;
-    border: 5px solid #000;
+    border: 2px solid #000;
 }
