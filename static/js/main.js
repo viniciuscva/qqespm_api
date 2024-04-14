@@ -5,10 +5,11 @@ let spatial_pattern = {
   edges: [],
 };
 let added_keywords = new Set();
+let spatial_pattern_json;
 
-// searchPattern()
-// document.getElementById("search").onclick = searchPattern;
-// document.getElementById("add-relationship").onclick = addRelationship;
+// searchPattern();
+// document.getElementById("search").addEventListener("click", searchPattern);
+// document.getElementById("add-relationship").addEventListener("click", addRelationship);
 
 function addRelationship() {
   let wi = document.getElementById("first-poi-keyword-dropdown").value;
@@ -79,7 +80,7 @@ function searchPattern() {
   //let bounds = mapa.getBounds()
   //let [north, east] = [bounds['_northEast']['lat'], bounds['_northEast']['lng']]
 
-  sp =
+  let sp =
     '{"vertices": [{"id": 0, "keyword": "school"}, {"id": 1, "keyword": "bakery"}, {"id": 2, "keyword": "restaurant"}], "edges": [{"id": "0-1", "vi": 0, "vj": 1, "lij": 0, "uij": 1000, "sign": "-", "relation": null}, {"id": "1-2", "vi": 1, "vj": 2, "lij": 356, "uij": 2918, "sign": ">", "relation": null}]}';
   spatial_pattern_json = JSON.stringify(spatial_pattern);
   document.getElementById("spatial-pattern-drawing").innerHTML = spatial_pattern_json;
@@ -114,9 +115,9 @@ function updatePoiKeywordsSelect(search = "") {
   searchResults.forEach((p) => {
     const option = document.createElement("div");
     option.innerText = p;
-    option.onclick = () => {
+    option.addEventListener("click", () => {
       poiKeywordInput.value = p;
-    };
+    });
     poiKeywordsSelect.appendChild(option);
   });
 }
@@ -124,12 +125,12 @@ function updatePoiKeywordsSelect(search = "") {
 const poiKeywordInput = document.getElementById("poi-keyword-input");
 const poiKeywordsSelect = document.getElementById("poi-keywords-select");
 
-window.onclick = ({ target }) => {
+document.body.addEventListener("click", ({ target }) => {
   poiKeywordsSelect.hidden = target !== poiKeywordInput;
-};
+});
 
-poiKeywordInput.oninput = () => {
+poiKeywordInput.addEventListener("input", () => {
   updatePoiKeywordsSelect(poiKeywordInput.value);
-};
+});
 
 updatePoiKeywordsSelect();
