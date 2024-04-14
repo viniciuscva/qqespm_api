@@ -16,25 +16,28 @@ import numpy as np
 import pandas as pd
 import geopandas
 from collections import defaultdict
+import os
 
 
 ilq = None
 total_bbox_ilq = None
 
-def read_df_csv(data_dir = 'data/pois_paraiba5.csv'):
+def read_df_csv(data_dir = os.path.dirname(os.path.realpath(__file__)) + '/data/pois_paraiba5.csv'):
     pois = pd.read_csv(data_dir,  low_memory=False)
     pois['geometry'] = geopandas.GeoSeries.from_wkt(pois['geometry'])
     pois['centroid'] = geopandas.GeoSeries.from_wkt(pois['centroid'])
     return pois
 
-def get_df_surrounding_bbox(pois, delta = 0.01):
+def get_df_surrounding_bbox(pois, delta = 0.001):
     lons_lats = np.vstack([np.array(t) for t in pois['centroid'].apply(lambda e: e.coords[0]).values])
     pois['lon'], pois['lat'] = lons_lats[:, 0], lons_lats[:, 1]
     surrounding_bbox = (pois['lon'].min()-delta, pois['lat'].min()-delta, pois['lon'].max()+delta, pois['lat'].max()+delta)
     pois.drop(['lon','lat'], axis = 1, inplace = True)
     return surrounding_bbox
 
-def generate_ilquadtree(pois, total_bbox_ilq, max_depth = 3, keyword_columns = ['amenity','shop','tourism'], insertion_fraction = 1.0):
+def generate_ilquadtree(data_dir = os.path.dirname(os.path.realpath(__file__)) + '/data/pois_paraiba5.csv', max_depth = 3, keyword_columns = ['amenity','shop','tourism'], insertion_fraction = 1.0):
+    pois = read_df_csv(data_dir=data_dir)
+    total_bbox_ilq = get_df_surrounding_bbox(pois)
     objs = GeoObj.get_objects_from_geopandas(pois, keyword_columns = keyword_columns)
     ilq = ILQuadTree(total_bbox = total_bbox_ilq, max_depth = max_depth)
     ilq.insert_elements_from_list(objs[0: int(insertion_fraction*len(objs))+1])
@@ -735,7 +738,7 @@ def filter_qq_e_matches_by_vertex_candidates(qq_e_matches, edge, candidates):
     return list(filter(lambda e: (e[0] in candidates[edge.vi] and e[1] in candidates[edge.vj]), qq_e_matches))
     
 
-def join_qq_e_matches(sp: SpatialPatternGraph, qq_e_matches: dict, qq_n_matches: dict, skip_edges: list, non_skip_edges: list, pool_obj = None):
+def join_qq_e_matches(sp: SpatialPatternGraph, qq_e_matches: dict, qq_n_matches: dict, skip_edges: list, non_skip_edges: list, pool_obj = None, debug = False):
     #t0 = time()
     non_skip_edges.sort(key = lambda e: len(qq_e_matches[e]))
     skip_edges.sort(key = lambda e: len(qq_n_matches[e]))
@@ -751,6 +754,26 @@ def join_qq_e_matches(sp: SpatialPatternGraph, qq_e_matches: dict, qq_n_matches:
         
     for edge in non_skip_edges:
         qq_e_matches[edge] = filter_qq_e_matches_by_vertex_candidates(qq_e_matches[edge], edge, candidates)
+
+    if debug:
+        print('Sorting edges by the alternating total qq-e-matches estrategy for Join')
+    non_skip_edges.sort(key = lambda edge: len(qq_e_matches[edge]))
+    if len(non_skip_edges) >= 3:
+        if len(non_skip_edges) %2 == 0:
+            non_skip_edges_small = non_skip_edges[:len(non_skip_edges)//2]
+            non_skip_edges_big = non_skip_edges[-1:(len(non_skip_edges)//2)-1:-1]
+            non_skip_edges = []
+            for i in range(len(non_skip_edges_small)):
+                non_skip_edges.extend([non_skip_edges_small[i], non_skip_edges_big[i]])
+        else:
+            size = len(non_skip_edges)
+            median_edge = non_skip_edges[size//2]
+            non_skip_edges_small = non_skip_edges[:len(non_skip_edges)//2]
+            non_skip_edges_big = non_skip_edges[-1:len(non_skip_edges)//2:-1]
+            non_skip_edges = []
+            for i in range(len(non_skip_edges_small)):
+                non_skip_edges.extend([non_skip_edges_small[i], non_skip_edges_big[i]])
+            non_skip_edges.append(median_edge)
 
     partial_solutions = [{vertex.id: None for vertex in sp.vertices}]
     for edge in non_skip_edges:
@@ -790,7 +813,7 @@ def join_qq_e_matches(sp: SpatialPatternGraph, qq_e_matches: dict, qq_n_matches:
     #print('Time spent on Joining:', time() - t0)
     return final_solutions
 
-def QQESPM(sp, ilquadtree: ILQuadTree = None, data_dir = 'data/pois_paraiba5.csv', debug = True):
+def QQESPM(sp, ilquadtree: ILQuadTree = None, data_dir = os.path.dirname(os.path.realpath(__file__)) + '/data/pois_paraiba5.csv', debug = False):
     global ilq
     global total_bbox_ilq
     
@@ -800,10 +823,10 @@ def QQESPM(sp, ilquadtree: ILQuadTree = None, data_dir = 'data/pois_paraiba5.csv
     elif ilq is None:
         if debug:
             print('Reading CSV and generating ILQuadtree ...')
-        pois = read_df_csv(data_dir)
-        total_bbox_ilq = get_df_surrounding_bbox(pois)
-        ilq = generate_ilquadtree(pois, total_bbox_ilq)
-    if sp.__class__ == SpatialPatternGraph:
+        #pois = read_df_csv(data_dir)
+        #total_bbox_ilq = get_df_surrounding_bbox(pois)
+        ilq = generate_ilquadtree()
+    if sp.pattern_type == 'simple_graph':
         pool_obj = ThreadPool(int(multiprocessing.cpu_count()-1))
         t0 = time()
         
@@ -830,13 +853,13 @@ def QQESPM(sp, ilquadtree: ILQuadTree = None, data_dir = 'data/pois_paraiba5.csv
             if debug:
                 print('Number of skip-edges:', len(skip_edges))
                 print('Joining qq-e-matches')
-            solutions = join_qq_e_matches(sp, qq_e_matches, qq_n_matches, skip_edges, non_skip_edges, pool_obj = pool_obj)
+            solutions = join_qq_e_matches(sp, qq_e_matches, qq_n_matches, skip_edges, non_skip_edges, pool_obj = pool_obj, debug = debug)
             # solutions is a list of dictionaries in the format {v1: obj1, v2: obj2, ..., vn: objn} with matches to vertices 
         elapsed_time = time() - t0
         memory_usage = psutil.Process().memory_info().rss/(2**20)
         pool_obj.close()
         return solutions, elapsed_time, memory_usage
-    elif sp.__class__ == SpatialPatternMultiGraph:
+    else:
         pool_obj = ThreadPool()
         t0 = time()
         qqespm_find_solutions_partial = partial(qqespm_find_solutions, ilquadtree = ilq)
