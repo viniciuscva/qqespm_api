@@ -107,41 +107,29 @@ function searchPattern() {
   added_keywords = new Set();
 }
 
-function updatePoiKeywordsSelect(search) {
-  // poiKeywordsSelect.innerHTML = poiKeywords.filter(p => p.startsWith(search)).map(p => `<div>${p}</div>`).join("");
+function updatePoiKeywordsSelect(search = "") {
+  const searchResults = poiKeywords.filter((p) => p.startsWith(search));
   poiKeywordsSelect.innerHTML = "";
-  poiKeywords
-    .filter((p) => p.startsWith(search))
-    .forEach((p) => {
-      const poiKeywordOption = document.createElement("div");
-      poiKeywordOption.innerText = p;
-      poiKeywordOption.onclick = () => {
-        poiKeywordInput.value = p;
-        poiKeywordsSelect.hidden = true;
-      };
-      poiKeywordsSelect.appendChild(poiKeywordOption);
-    });
+
+  searchResults.forEach((p) => {
+    const option = document.createElement("div");
+    option.innerText = p;
+    option.onclick = () => {
+      poiKeywordInput.value = p;
+    };
+    poiKeywordsSelect.appendChild(option);
+  });
 }
 
 const poiKeywordInput = document.getElementById("poi-keyword-input");
 const poiKeywordsSelect = document.getElementById("poi-keywords-select");
 
-updatePoiKeywordsSelect("");
-
-poiKeywordsSelect.onclick = (e) => {
-  e.stopPropagation();
-};
-
-poiKeywordInput.onfocus = () => {
-  poiKeywordsSelect.hidden = false;
+window.onclick = ({ target }) => {
+  poiKeywordsSelect.hidden = target !== poiKeywordInput;
 };
 
 poiKeywordInput.oninput = () => {
   updatePoiKeywordsSelect(poiKeywordInput.value);
 };
 
-window.onclick = (e) => {
-  if (e.target !== poiKeywordInput && !poiKeywordsSelect.contains(e.target)) {
-    poiKeywordsSelect.hidden = true;
-  }
-};
+updatePoiKeywordsSelect();
