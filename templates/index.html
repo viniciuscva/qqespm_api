@@ -14,7 +14,12 @@
       <div class="section">
         <p class="section-title">Spatial Pattern Builder</p>
 
-        <br />
+        <div class="poi-keywords-container">
+          <input type="text" id="poi-keyword-input" />
+          <div id="poi-keywords-select" hidden></div>
+        </div>
+
+        <!-- <br />
 
         <label>First POI type:</label>
         <select id="first-poi-keyword-dropdown">
@@ -62,7 +67,7 @@
         <br />
 
         <button id="add-relationship">Add the POI Relationship</button>
-        <button id="search">Search Pattern</button>
+        <button id="search">Search Pattern</button> -->
       </div>
 
       <div id="spatial-pattern-drawing" class="section">
@@ -79,6 +84,6 @@
       </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
   </body>
 </html>

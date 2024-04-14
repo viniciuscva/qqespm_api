@@ -44,7 +44,8 @@ button {
 
 .main {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  grid-template-columns: 1fr 2fr;
   flex-grow: 1;
   border: 1px solid gray;
 }
@@ -56,6 +57,27 @@ button {
 
 .section-title {
   font-weight: 500;
+}
+
+.poi-keywords-container {
+  position: relative;
+}
+
+#poi-keyword-input {
+  width: 100%;
+  padding: 0.25rem;
+}
+
+#poi-keywords-select {
+  position: absolute;
+  width: 100%;
+  height: 8lh;
+  border: 1px solid gray;
+  overflow: auto;
+}
+
+#poi-keywords-select > div:hover {
+  background: #ddd;
 }
 
 #map-iframe {
