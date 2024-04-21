@@ -36,6 +36,10 @@ button {
   border: 1px solid gray;
 }
 
+label {
+  display: block;
+}
+
 .title {
   font-size: 1.25rem;
   font-weight: 500;
@@ -45,7 +49,7 @@ button {
 .main {
   display: grid;
   grid-auto-rows: 1fr;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 3fr 5fr;
   flex-grow: 1;
   border: 1px solid gray;
 }
@@ -63,21 +67,53 @@ button {
   position: relative;
 }
 
-#poi-keyword-input {
+.poi-keyword-input {
   width: 100%;
   padding: 0.25rem;
 }
 
-#poi-keywords-select {
+.poi-keywords-select {
   position: absolute;
   width: 100%;
   height: 8lh;
+  background: white;
   border: 1px solid gray;
   overflow: auto;
+  z-index: 1;
 }
 
-#poi-keywords-select > div:hover {
+.poi-keywords-select > div:hover {
   background: #ddd;
+}
+
+#distance-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#distance-container input {
+  flex-grow: 1;
+}
+
+.exclusion-constraint {
+  font-size: 13px;
+}
+
+#relation-container {
+  margin-top: 0.5rem;
+}
+
+#button-container {
+  display: flex;
+  gap: 4rem;
+  margin-top: 0.5rem;
+}
+
+#button-container button {
+  flex-grow: 1;
+  padding: 2px;
+  background: #ccc;
+  cursor: pointer;
 }
 
 #map-iframe {

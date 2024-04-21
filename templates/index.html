@@ -15,8 +15,49 @@
         <p class="section-title">Spatial Pattern Builder</p>
 
         <div class="poi-keywords-container">
-          <input type="text" id="poi-keyword-input" />
-          <div id="poi-keywords-select" hidden></div>
+          <label>First POI:</label>
+          <input type="text" id="first-poi-keyword-input" class="poi-keyword-input" />
+          <div id="first-poi-keywords-select" class="poi-keywords-select" hidden></div>
+        </div>
+
+        <div class="poi-keywords-container">
+          <label>Second POI:</label>
+          <input type="text" id="second-poi-keyword-input" class="poi-keyword-input" />
+          <div id="second-poi-keywords-select" class="poi-keywords-select" hidden></div>
+        </div>
+
+        <label>Distance (meters)</label>
+        <div id="distance-container">
+          <input type="number" id="min-distance-input" value="0" min="0" max="9999" />
+          <span>to</span>
+          <input type="number" id="max-distance-input" value="1000" min="0" max="9999" />
+        </div>
+
+        <div id="exclusion-constraint-container" hidden>
+          <div>
+            <input type="checkbox" id="" />
+            <span id="left-exclusion-constraint" class="exclusion-constraint"></span>
+          </div>
+          <div>
+            <input type="checkbox" id="" />
+            <span id="right-exclusion-constraint" class="exclusion-constraint"></span>
+          </div>
+        </div>
+
+        <div id="relation-container">
+          <span>Relation:</span>
+          <select id="relation-select">
+            <option value="null">No relation</option>
+            <option value="intersects">Intersects</option>
+            <option value="contains">Contains</option>
+            <option value="within">Within</option>
+            <option value="disjoint">Disconnected</option>
+          </select>
+        </div>
+
+        <div id="button-container">
+          <button>Add relationship</button>
+          <button>Search pattern</button>
         </div>
 
         <!-- <br />

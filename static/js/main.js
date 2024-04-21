@@ -108,29 +108,59 @@ function searchPattern() {
   added_keywords = new Set();
 }
 
-function updatePoiKeywordsSelect(search = "") {
-  const searchResults = poiKeywords.filter((p) => p.startsWith(search));
-  poiKeywordsSelect.innerHTML = "";
+function updatePoiKeywordsSelect(input, select) {
+  const inputKeyword = input.value;
+  const filteredPoiKeywords = poiKeywords.filter((p) => p.startsWith(inputKeyword));
+  select.innerHTML = "";
 
-  searchResults.forEach((p) => {
+  filteredPoiKeywords.forEach((poiKeyword) => {
     const option = document.createElement("div");
-    option.innerText = p;
+    option.innerText = poiKeyword;
     option.addEventListener("click", () => {
-      poiKeywordInput.value = p;
+      input.value = poiKeyword;
+      updateExclusionsConstraint();
     });
-    poiKeywordsSelect.appendChild(option);
+    select.appendChild(option);
   });
 }
 
-const poiKeywordInput = document.getElementById("poi-keyword-input");
-const poiKeywordsSelect = document.getElementById("poi-keywords-select");
+function updateExclusionsConstraint() {
+  const [poi2, dmin, poi1] = [
+    secondPoiKeywordInput.value,
+    minDistanceInput.value,
+    firstPoiKeywordInput.value,
+  ];
+  leftExclusionConstraint.innerHTML = `avoid other ${poi2} POIs closer than ${dmin}m from ${poi1} POI`;
+  rightExclusionConstraint.innerHTML = `avoid other ${poi1} POIs closer than ${dmin}m from ${poi2} POI`;
+  exclusionConstraintContainer.hidden = minDistanceInput.value <= 0 || !poi1 || !poi2;
+}
 
-document.body.addEventListener("click", ({ target }) => {
-  poiKeywordsSelect.hidden = target !== poiKeywordInput;
+const firstPoiKeywordInput = document.getElementById("first-poi-keyword-input");
+const secondPoiKeywordInput = document.getElementById("second-poi-keyword-input");
+const firstPoiKeywordsSelect = document.getElementById("first-poi-keywords-select");
+const secondPoiKeywordsSelect = document.getElementById("second-poi-keywords-select");
+const minDistanceInput = document.getElementById("min-distance-input");
+const maxDistanceInput = document.getElementById("max-distance-input");
+const exclusionConstraintContainer = document.getElementById("exclusion-constraint-container");
+const leftExclusionConstraint = document.getElementById("left-exclusion-constraint");
+const rightExclusionConstraint = document.getElementById("right-exclusion-constraint");
+
+document.body.addEventListener("click", (e) => {
+  firstPoiKeywordsSelect.hidden = e.target !== firstPoiKeywordInput;
+  secondPoiKeywordsSelect.hidden = e.target !== secondPoiKeywordInput;
 });
 
-poiKeywordInput.addEventListener("input", () => {
-  updatePoiKeywordsSelect(poiKeywordInput.value);
+firstPoiKeywordInput.addEventListener("input", () => {
+  updatePoiKeywordsSelect(firstPoiKeywordInput, firstPoiKeywordsSelect);
+  updateExclusionsConstraint();
 });
 
-updatePoiKeywordsSelect();
+secondPoiKeywordInput.addEventListener("input", () => {
+  updatePoiKeywordsSelect(secondPoiKeywordInput, secondPoiKeywordsSelect);
+  updateExclusionsConstraint();
+});
+
+minDistanceInput.addEventListener("input", updateExclusionsConstraint);
+
+updatePoiKeywordsSelect(firstPoiKeywordInput, firstPoiKeywordsSelect);
+updatePoiKeywordsSelect(secondPoiKeywordInput, secondPoiKeywordsSelect);
