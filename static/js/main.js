@@ -1,11 +1,11 @@
+import calculateCircumferencePoints from "./calculateCircumferencePoints.js";
 import poiKeywords from "../data/pois.json" assert { type: "json" };
 
-const spatial_pattern = {
+const spatialPattern = {
   vertices: [],
   edges: [],
 };
 const added_keywords = new Set();
-let spatial_pattern_json;
 
 function generateSign(leftExclusion, rightExclusion) {
   if (leftExclusion && rightExclusion) {
@@ -27,17 +27,17 @@ function addRelationship() {
     return;
   }
   if (!added_keywords.has(wi)) {
-    spatial_pattern.vertices.push({ id: spatial_pattern.vertices.length, keyword: wi });
+    spatialPattern.vertices.push({ id: spatialPattern.vertices.length, keyword: wi });
   }
   added_keywords.add(wi);
 
   if (!added_keywords.has(wj)) {
-    spatial_pattern.vertices.push({ id: spatial_pattern.vertices.length, keyword: wj });
+    spatialPattern.vertices.push({ id: spatialPattern.vertices.length, keyword: wj });
   }
   added_keywords.add(wj);
 
   let id_wi, id_wj;
-  spatial_pattern.vertices.forEach((value, index) => {
+  spatialPattern.vertices.forEach((value, index) => {
     if (value.keyword == wi) id_wi = index;
     if (value.keyword == wj) id_wj = index;
   });
@@ -50,7 +50,7 @@ function addRelationship() {
   const relation = relationSelect.value === "null" ? null : relationSelect.value;
   let relationship_already_added = false;
 
-  spatial_pattern.edges.forEach((edge) => {
+  spatialPattern.edges.forEach((edge) => {
     if ((edge.vi == id_wi && edge.vj == id_wj) || (edge.vj == id_wi && edge.vi == id_wj)) {
       relationship_already_added = true;
       return;
@@ -69,13 +69,11 @@ function addRelationship() {
   if (relationship_already_added) {
     alert("Relationship already added!");
   } else {
-    spatial_pattern.edges.push(edge);
+    spatialPattern.edges.push(edge);
   }
-  spatial_pattern_json = JSON.stringify(spatial_pattern);
-  document.getElementById("spatial-pattern-drawing").innerHTML = spatial_pattern_json;
+  // spatialPatternDrawing.innerHTML = "";
   searchPatternButton.disabled = false;
-
-  console.log("Current pattern:", spatial_pattern);
+  console.log("Current pattern:", JSON.stringify(spatialPattern));
 }
 
 function searchPattern() {
@@ -91,16 +89,10 @@ function searchPattern() {
   //let bounds = mapa.getBounds()
   //let [north, east] = [bounds['_northEast']['lat'], bounds['_northEast']['lng']]
 
-  let sp =
-    '{"vertices": [{"id": 0, "keyword": "school"}, {"id": 1, "keyword": "bakery"}, {"id": 2, "keyword": "restaurant"}], "edges": [{"id": "0-1", "vi": 0, "vj": 1, "lij": 0, "uij": 1000, "sign": "-", "relation": null}, {"id": "1-2", "vi": 1, "vj": 2, "lij": 356, "uij": 2918, "sign": ">", "relation": null}]}';
-  spatial_pattern_json = JSON.stringify(spatial_pattern);
-  document.getElementById("spatial-pattern-drawing").innerHTML = spatial_pattern_json;
-  console.log("spatial_pattern_json to be submitted: ", spatial_pattern_json);
-
   // http://127.0.0.1:5000
   fetch("/search", {
     method: "POST",
-    body: JSON.stringify({ method: "qqespm", spatial_pattern: spatial_pattern_json }),
+    body: JSON.stringify({ method: "qqespm", spatial_pattern: JSON.stringify(spatialPattern) }),
     headers: {
       "Content-type": "application/json; charset=UTF-8",
     },
@@ -112,8 +104,8 @@ function searchPattern() {
     });
   // document.getElementById('p-text-description').innerHTML = res;
 
-  spatial_pattern.vertices = [];
-  spatial_pattern.edges = [];
+  spatialPattern.vertices = [];
+  spatialPattern.edges = [];
   added_keywords.clear();
 }
 
@@ -172,6 +164,7 @@ const rightExclusionConstraintLabel = document.getElementById("right-exclusion-c
 const relationSelect = document.getElementById("relation-select");
 const addRelationshipButton = document.getElementById("add-relationship-button");
 const searchPatternButton = document.getElementById("search-pattern-button");
+const spatialPatternDrawing = document.getElementById("spatial-pattern-drawing");
 
 document.body.addEventListener("click", (e) => {
   firstPoiKeywordsSelect.hidden = e.target !== firstPoiKeywordInput;
