@@ -19,6 +19,22 @@ function generateSign(leftExclusion, rightExclusion) {
   }
 }
 
+function updateDrawing() {
+  const numberOfPois = spatialPattern.vertices.length;
+  const points = calculateCircumferencePoints(numberOfPois);
+  spatialPatternDrawing.innerHTML = "";
+
+  points.forEach(([left, top], index) => {
+    const element = document.createElement("div");
+    const poiKeyword = spatialPattern.vertices[index].keyword;
+    element.className = "drawing-poi";
+    element.innerText = poiKeyword;
+    element.style.left = left + "%";
+    element.style.top = top + "%";
+    spatialPatternDrawing.appendChild(element);
+  });
+}
+
 function addRelationship() {
   const [wi, wj] = [firstPoiKeywordInput.value, secondPoiKeywordInput.value];
 
@@ -71,7 +87,8 @@ function addRelationship() {
   } else {
     spatialPattern.edges.push(edge);
   }
-  // spatialPatternDrawing.innerHTML = "";
+
+  updateDrawing();
   searchPatternButton.disabled = false;
   console.log("Current pattern:", JSON.stringify(spatialPattern));
 }
