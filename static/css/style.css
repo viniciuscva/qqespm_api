@@ -116,6 +116,11 @@ label {
   cursor: pointer;
 }
 
+#button-container button:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
 #map-iframe {
   width: 100%;
   height: 100%;

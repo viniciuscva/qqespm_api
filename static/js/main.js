@@ -1,28 +1,36 @@
 import poiKeywords from "../data/pois.json" assert { type: "json" };
 
-let spatial_pattern = {
+const spatial_pattern = {
   vertices: [],
   edges: [],
 };
-let added_keywords = new Set();
+const added_keywords = new Set();
 let spatial_pattern_json;
 
-// searchPattern();
-// document.getElementById("search").addEventListener("click", searchPattern);
-// document.getElementById("add-relationship").addEventListener("click", addRelationship);
+function generateSign(leftExclusion, rightExclusion) {
+  if (leftExclusion && rightExclusion) {
+    return "<>";
+  } else if (leftExclusion) {
+    return ">";
+  } else if (rightExclusion) {
+    return "<";
+  } else {
+    return "-";
+  }
+}
 
 function addRelationship() {
-  let wi = document.getElementById("first-poi-keyword-dropdown").value;
-  let wj = document.getElementById("second-poi-keyword-dropdown").value;
+  const [wi, wj] = [firstPoiKeywordInput.value, secondPoiKeywordInput.value];
 
   if (wi == wj) {
-    console.log("The second POI keyword should be different than the first one!");
+    alert("The second POI keyword should be different than the first one!");
     return;
   }
   if (!added_keywords.has(wi)) {
     spatial_pattern.vertices.push({ id: spatial_pattern.vertices.length, keyword: wi });
   }
   added_keywords.add(wi);
+
   if (!added_keywords.has(wj)) {
     spatial_pattern.vertices.push({ id: spatial_pattern.vertices.length, keyword: wj });
   }
@@ -30,27 +38,26 @@ function addRelationship() {
 
   let id_wi, id_wj;
   spatial_pattern.vertices.forEach((value, index) => {
-    if (value["keyword"] == wi) id_wi = index;
-    if (value["keyword"] == wj) id_wj = index;
+    if (value.keyword == wi) id_wi = index;
+    if (value.keyword == wj) id_wj = index;
   });
 
-  let lij = document.getElementById("dmin").value;
-  let uij = document.getElementById("dmax").value;
-  let sign = document.getElementById("sign-dropdown").value;
-  let relation = document.getElementById("relation-dropdown").value;
+  const [lij, uij] = [minDistanceInput.value, maxDistanceInput.value];
+  const sign = generateSign(
+    leftExclusionConstraintCheckbox.checked,
+    rightExclusionConstraintCheckbox.checked
+  );
+  const relation = relationSelect.value === "null" ? null : relationSelect.value;
   let relationship_already_added = false;
 
-  spatial_pattern.edges.forEach((value, index) => {
-    if (
-      (value["vi"] == id_wi && value["vj"] == id_wj) ||
-      (value["vj"] == id_wi && value["vi"] == id_wj)
-    ) {
+  spatial_pattern.edges.forEach((edge) => {
+    if ((edge.vi == id_wi && edge.vj == id_wj) || (edge.vj == id_wi && edge.vi == id_wj)) {
       relationship_already_added = true;
       return;
     }
   });
 
-  let edge = {
+  const edge = {
     id: id_wi + "-" + id_wj,
     vi: id_wi,
     vj: id_wj,
@@ -59,10 +66,14 @@ function addRelationship() {
     sign: sign,
     relation: relation,
   };
-  if (relationship_already_added) console.log("Relationship already added!");
-  else spatial_pattern.edges.push(edge);
+  if (relationship_already_added) {
+    alert("Relationship already added!");
+  } else {
+    spatial_pattern.edges.push(edge);
+  }
   spatial_pattern_json = JSON.stringify(spatial_pattern);
   document.getElementById("spatial-pattern-drawing").innerHTML = spatial_pattern_json;
+  searchPatternButton.disabled = false;
 
   console.log("Current pattern:", spatial_pattern);
 }
@@ -101,11 +112,9 @@ function searchPattern() {
     });
   // document.getElementById('p-text-description').innerHTML = res;
 
-  spatial_pattern = {
-    vertices: [],
-    edges: [],
-  };
-  added_keywords = new Set();
+  spatial_pattern.vertices = [];
+  spatial_pattern.edges = [];
+  added_keywords.clear();
 }
 
 function updatePoiKeywordsSelect(input, select) {
@@ -119,6 +128,7 @@ function updatePoiKeywordsSelect(input, select) {
     option.addEventListener("click", () => {
       input.value = poiKeyword;
       updateExclusionsConstraint();
+      updateAddRelationButtonState();
     });
     select.appendChild(option);
   });
@@ -130,9 +140,18 @@ function updateExclusionsConstraint() {
     minDistanceInput.value,
     firstPoiKeywordInput.value,
   ];
-  leftExclusionConstraint.innerHTML = `avoid other ${poi2} POIs closer than ${dmin}m from ${poi1} POI`;
-  rightExclusionConstraint.innerHTML = `avoid other ${poi1} POIs closer than ${dmin}m from ${poi2} POI`;
+  leftExclusionConstraintLabel.innerHTML = `avoid other ${poi2} POIs closer than ${dmin}m from ${poi1} POI`;
+  rightExclusionConstraintLabel.innerHTML = `avoid other ${poi1} POIs closer than ${dmin}m from ${poi2} POI`;
   exclusionConstraintContainer.hidden = minDistanceInput.value <= 0 || !poi1 || !poi2;
+  if (exclusionConstraintContainer.hidden) {
+    leftExclusionConstraintCheckbox.checked = false;
+    rightExclusionConstraintCheckbox.checked = false;
+  }
+}
+
+function updateAddRelationButtonState() {
+  const [poi1, poi2] = [firstPoiKeywordInput.value, secondPoiKeywordInput.value];
+  addRelationshipButton.disabled = !poi1 || !poi2;
 }
 
 const firstPoiKeywordInput = document.getElementById("first-poi-keyword-input");
@@ -142,8 +161,17 @@ const secondPoiKeywordsSelect = document.getElementById("second-poi-keywords-sel
 const minDistanceInput = document.getElementById("min-distance-input");
 const maxDistanceInput = document.getElementById("max-distance-input");
 const exclusionConstraintContainer = document.getElementById("exclusion-constraint-container");
-const leftExclusionConstraint = document.getElementById("left-exclusion-constraint");
-const rightExclusionConstraint = document.getElementById("right-exclusion-constraint");
+const leftExclusionConstraintCheckbox = document.getElementById(
+  "left-exclusion-constraint-checkbox"
+);
+const rightExclusionConstraintCheckbox = document.getElementById(
+  "right-exclusion-constraint-checkbox"
+);
+const leftExclusionConstraintLabel = document.getElementById("left-exclusion-constraint-label");
+const rightExclusionConstraintLabel = document.getElementById("right-exclusion-constraint-label");
+const relationSelect = document.getElementById("relation-select");
+const addRelationshipButton = document.getElementById("add-relationship-button");
+const searchPatternButton = document.getElementById("search-pattern-button");
 
 document.body.addEventListener("click", (e) => {
   firstPoiKeywordsSelect.hidden = e.target !== firstPoiKeywordInput;
@@ -153,14 +181,19 @@ document.body.addEventListener("click", (e) => {
 firstPoiKeywordInput.addEventListener("input", () => {
   updatePoiKeywordsSelect(firstPoiKeywordInput, firstPoiKeywordsSelect);
   updateExclusionsConstraint();
+  updateAddRelationButtonState();
 });
 
 secondPoiKeywordInput.addEventListener("input", () => {
   updatePoiKeywordsSelect(secondPoiKeywordInput, secondPoiKeywordsSelect);
   updateExclusionsConstraint();
+  updateAddRelationButtonState();
 });
 
 minDistanceInput.addEventListener("input", updateExclusionsConstraint);
+
+addRelationshipButton.addEventListener("click", addRelationship);
+searchPatternButton.addEventListener("click", searchPattern);
 
 updatePoiKeywordsSelect(firstPoiKeywordInput, firstPoiKeywordsSelect);
 updatePoiKeywordsSelect(secondPoiKeywordInput, secondPoiKeywordsSelect);
