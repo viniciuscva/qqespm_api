@@ -17,6 +17,8 @@ import pandas as pd
 import geopandas
 from collections import defaultdict
 import os
+import matplotlib.pyplot as plt
+import networkx as nx
 
 
 ilq = None
@@ -59,14 +61,15 @@ class SpatialVertex:
     def __init__(self, id, keyword):
         self.id = id
         self.keyword = keyword
+    
     def __str__(self):
-        return str(self.id) + '(' + str(self.keyword) + ')'
+        return '   ' + str(self.id) + ' (' + str(self.keyword) + ')'
 
     def __hash__(self):
         return hash(self.__str__())
 
     def __repr__(self):
-        return str(self.id) + '(' + str(self.keyword) + ')'
+        return '   ' + str(self.id) + ' (' + str(self.keyword) + ')'
 
     def __eq__(self, another_vertex):
         return self.id == another_vertex.id and self.keyword == another_vertex.keyword
@@ -129,15 +132,18 @@ class SpatialEdge:
     def __hash__(self):
         return hash(self.__str__())
 
-    def get_contraint_label(self):
+    def get_constraint_label(self):
         label = ""
-        relation = self.constraint['relation']
-        if relation is None or relation == 'disjoint':
-            if self.constraint['lij'] > 0:
-                label += f"minimum distance: {round(self.constraint['lij'],3)}\n"
-            label += f"maximum distance: {round(self.constraint['uij'],3)}\n"
+        lij, uij, relation = self.constraint['lij'], self.constraint['uij'], self.constraint['relation']
+        if lij > 0 and uij < float('inf'):
+            label += f"between {round(lij)} and {round(uij)}m\n"
+        elif lij > 0:
+            label += f"more than {round(lij)}m\n"
+        elif uij < float('inf'):
+            label += f"less than {round(uij)}m\n"
         if relation is not None:
             label += f"{self.constraint['relation']}\n"
+        
         return label[:-1]
 
     def to_json(self):
@@ -276,6 +282,37 @@ class SpatialPatternGraph:
 
     def __lt__(self, another):
         return self.__hash__() < another.__hash__()
+    
+    def to_networkx(self):
+        G = nx.Graph()
+        for edge in self.edges:
+            G.add_edge(edge.vi, edge.vj, data = {'id': edge.id, 'constraint': edge.constraint})
+        return G
+    
+    def plot(self, output_file = None, node_color = np.array([[0.38431373, 0.61568627, 0.98823529]]), edge_color = 'k', ax = None):
+        #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edge_labels.html#networkx.drawing.nx_pylab.draw_networkx_edge_labels
+        #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_labels.html#networkx.drawing.nx_pylab.draw_networkx_labels
+        #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edges.html#networkx.drawing.nx_pylab.draw_networkx_edges
+        #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_nodes.html#networkx.drawing.nx_pylab.draw_networkx_nodes
+        #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx.html
+        G = self.to_networkx()
+        #nx.draw(G, pos=nx.circular_layout(G), node_color=node_color, edge_color=edge_color)
+        if ax is None:
+            fig, ax = plt.subplots()
+            fig.set_figwidth(14)
+            fig.set_figheight(8)
+        ax.set_xlim(-1.03, 1.32)
+        nx.draw_networkx(G, pos=nx.circular_layout(G), ax = ax, with_labels=False, node_color=node_color, edge_color=edge_color)
+        nx.draw_networkx_edges(G, pos=nx.circular_layout(G), ax = ax)
+        nx.draw_networkx_labels(G, pos = nx.circular_layout(G), horizontalalignment='left', verticalalignment='bottom', ax=ax)
+
+        edge_labels = {(edge.vi, edge.vj): edge.get_constraint_label() for edge in self.edges}
+        nx.draw_networkx_edge_labels(G, pos = nx.circular_layout(G), edge_labels = edge_labels, ax = ax, font_size=14)
+        plt.tight_layout()
+        if output_file is not None:
+            plt.savefig(output_file, bbox_inches="tight")
+        else:
+            plt.show()
     
 
     

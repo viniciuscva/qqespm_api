@@ -20,19 +20,37 @@ function generateSign(leftExclusion, rightExclusion) {
 }
 
 function updateDrawing() {
-  const numberOfPois = spatialPattern.vertices.length;
-  const points = calculateCircumferencePoints(numberOfPois);
-  spatialPatternDrawing.innerHTML = "";
+  // const numberOfPois = spatialPattern.vertices.length;
+  // const points = calculateCircumferencePoints(numberOfPois);
+  // spatialPatternDrawing.innerHTML = "";
 
-  points.forEach(([left, top], index) => {
-    const element = document.createElement("div");
-    const poiKeyword = spatialPattern.vertices[index].keyword;
-    element.className = "drawing-poi";
-    element.innerText = poiKeyword;
-    element.style.left = left + "%";
-    element.style.top = top + "%";
-    spatialPatternDrawing.appendChild(element);
-  });
+  // points.forEach(([left, top], index) => {
+  //   const element = document.createElement("div");
+  //   const poiKeyword = spatialPattern.vertices[index].keyword;
+  //   element.className = "drawing-poi";
+  //   element.innerText = poiKeyword;
+  //   element.style.left = left + "%";
+  //   element.style.top = top + "%";
+  //   spatialPatternDrawing.appendChild(element);
+  // });
+
+  var image = new Image();
+  //image.src = 'data:image/png;base64,iVBORw0K...';
+
+  fetch("/pattern_drawing", {
+    method: "POST",
+    body: JSON.stringify({ spatial_pattern: JSON.stringify(spatialPattern) }),
+    headers: {
+      "Content-type": "application/json; charset=UTF-8",
+    },
+  })
+    .then((res) => res.text())
+    .then((text) => {
+      var image = new Image();
+      image.src = text;
+      spatialPatternDrawing.appendChild(text);
+    });
+
 }
 
 function addRelationship() {

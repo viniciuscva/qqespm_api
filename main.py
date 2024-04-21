@@ -2,6 +2,9 @@ from flask import Flask, render_template, request, url_for, jsonify
 import folium
 import json
 import qqespm_module as qq
+from PIL import Image
+import base64
+import io
 
 
 app = Flask(__name__)
@@ -52,6 +55,36 @@ def call_qqespm():
     print('Memory usage:', memory_usage)
     solutions_json = qq.solutions_to_json(solutions[:10], indent=2, only_ids = False)
     return jsonify({'solutions': solutions_json})
+
+@app.route('/pattern_drawing', methods=['POST'])
+def get_spatial_pattern_drawing():
+    req_data = request.get_json()
+    spatial_pattern_json = req_data['spatial_pattern']
+    sp = qq.SpatialPatternGraph.from_json(spatial_pattern_json)
+    sp.plot(output_file='drawing.png')
+
+    #file = request.files['image']
+    #img = Image.open(file.stream)
+    #data = file.stream.read()
+
+    img = Image.open('drawing.png')
+
+    img_byte_arr = io.BytesIO()
+    img.save(img_byte_arr, format='PNG')
+    data = img_byte_arr.getvalue()
+    
+    data = base64.encodebytes(data)
+    data = base64.b64encode(data).decode()
+
+    #return f'<img src="data:image/png;base64,{data}">'
+    return f'data:image/png;base64,{data}'
+
+    # return jsonify({
+    #             'msg': 'success', 
+    #             'size': [img.width, img.height], 
+    #             'format': img.format,
+    #             'img': data
+    #        })
 
 
 if __name__ == '__main__':
