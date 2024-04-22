@@ -61,7 +61,7 @@ def get_spatial_pattern_drawing():
     req_data = request.get_json()
     spatial_pattern_json = req_data['spatial_pattern']
     sp = qq.SpatialPatternGraph.from_json(spatial_pattern_json)
-    sp.plot(output_file='drawing.png')
+    sp.plot(output_file='drawing.png', dpi=50)
 
     #file = request.files['image']
     #img = Image.open(file.stream)
@@ -73,11 +73,11 @@ def get_spatial_pattern_drawing():
     img.save(img_byte_arr, format='PNG')
     data = img_byte_arr.getvalue()
     
-    data = base64.encodebytes(data)
+    # data = base64.encodebytes(data)
     data = base64.b64encode(data).decode()
 
-    #return f'<img src="data:image/png;base64,{data}">'
-    return f'data:image/png;base64,{data}'
+    return f'<img src="data:image/png;base64,{data}">'
+    #return f'data:image/png;base64,{data}'
 
     # return jsonify({
     #             'msg': 'success', 

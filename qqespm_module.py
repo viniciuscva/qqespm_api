@@ -289,7 +289,7 @@ class SpatialPatternGraph:
             G.add_edge(edge.vi, edge.vj, data = {'id': edge.id, 'constraint': edge.constraint})
         return G
     
-    def plot(self, output_file = None, node_color = np.array([[0.38431373, 0.61568627, 0.98823529]]), edge_color = 'k', ax = None):
+    def plot(self, output_file = None, dpi=80, node_color = np.array([[0.38431373, 0.61568627, 0.98823529]]), edge_color = 'k', ax = None):
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edge_labels.html#networkx.drawing.nx_pylab.draw_networkx_edge_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_labels.html#networkx.drawing.nx_pylab.draw_networkx_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edges.html#networkx.drawing.nx_pylab.draw_networkx_edges
@@ -310,7 +310,7 @@ class SpatialPatternGraph:
         nx.draw_networkx_edge_labels(G, pos = nx.circular_layout(G), edge_labels = edge_labels, ax = ax, font_size=14)
         plt.tight_layout()
         if output_file is not None:
-            plt.savefig(output_file, bbox_inches="tight")
+            plt.savefig(output_file, dpi=dpi, bbox_inches="tight")
         else:
             plt.show()
     

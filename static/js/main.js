@@ -42,14 +42,28 @@ function updateDrawing() {
     body: JSON.stringify({ spatial_pattern: JSON.stringify(spatialPattern) }),
     headers: {
       "Content-type": "application/json; charset=UTF-8",
+      //"Content-type": "text/plain; charset=UTF-8",
     },
   })
     .then((res) => res.text())
-    .then((text) => {
-      var image = new Image();
-      image.src = text;
-      spatialPatternDrawing.appendChild(text);
-    });
+    //.then((data) => data['img'])
+    //.then((img_str) => {
+      //var image = new Image();
+      //image.style.display = 'block';
+    .then(data => spatialPatternDrawing.innerHTML = data)
+
+    //   let buffer=Uint8Array.from(atob(img_str), c => c.charCodeAt(0));
+    //   let blob=new Blob([buffer], { type: "image/png" });
+    //   let url=URL.createObjectURL(blob);
+    //   let img=document.createElement("img");
+    //   img.src=url;
+
+    //   spatialPatternDrawing.appendChild(img);
+    //   // image.style.width = '100px';
+    //   // image.style.height = '100px';
+    //   //image.src = `data:image/png;charset=utf-8;base64, ${img_str}`;
+    //   //spatialPatternDrawing.appendChild(image);
+    // });
 
 }
 
