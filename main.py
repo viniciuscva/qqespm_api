@@ -37,9 +37,9 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-@app.route('/map')
-def map():
-    return render_template('map.html')
+# @app.route('/map')
+# def map():
+#     return render_template('map.html')
 
 @app.route('/search', methods = ['POST'])
 def call_qqespm():

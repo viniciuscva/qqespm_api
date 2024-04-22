@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QQESPM - Spatial Pattern Search</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   </head>
 
@@ -60,55 +66,6 @@
           <button id="search-pattern-button" disabled>Search pattern</button>
         </div>
 
-        <!-- <br />
-
-        <label>First POI type:</label>
-        <select id="first-poi-keyword-dropdown">
-          <option value="school">school</option>
-          <option value="bank">bank</option>
-          <option value="hospital">hospital</option>
-          <option value="pharmacy">pharmacy</option>
-        </select>
-        <br />
-
-        <label>Second POI type:</label>
-        <select id="second-poi-keyword-dropdown">
-          <option value="school">school</option>
-          <option value="bank">bank</option>
-          <option value="hospital">hospital</option>
-          <option value="pharmacy">pharmacy</option>
-        </select>
-        <br />
-
-        <label>Minimum distance (meters):</label>
-        <input type="number" id="dmin" value="0" />
-        <br />
-
-        <label>Maximum distance (meters):</label>
-        <input type="number" id="dmax" value="500" />
-        <br />
-
-        <label>Sign:</label>
-        <select id="sign-dropdown">
-          <option value="-">-</option>
-          <option value="&gt;">&gt;</option>
-          <option value="&lt;">&lt;</option>
-          <option value="&lt;&gt;">&lt;&gt;</option>
-        </select>
-        <br />
-
-        <label>Relation:</label>
-        <select id="relation-dropdown">
-          <option value="none">None</option>
-          <option value="contains">Contains</option>
-          <option value="within">Within</option>
-          <option value="intersects">Intersects</option>
-          <option value="disjoint">Disjoint</option>
-        </select>
-        <br />
-
-        <button id="add-relationship">Add the POI Relationship</button>
-        <button id="search">Search Pattern</button> -->
       </div>
 
       <div id="spatial-pattern-container" class="section">
@@ -119,11 +76,15 @@
         <p class="section-title">Query results</p>
         Show the id, location and description for each result of the search pattern in a table.
       </div>
-      <div class="section folium-map">
-        <iframe id="map-iframe" class="map" , src="/map"></iframe>
+      <div class="section">
+        <!-- <iframe id="map-iframe" class="map" , src="/map"></iframe> -->
+        <div id="leaflet-map"></div>
       </div>
     </div>
 
+    <script>
+      var map = L.map('leaflet-map').setView([-7.23, -35.88], 14);
+     </script>
     <script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
   </body>
 </html>

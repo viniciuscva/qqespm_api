@@ -7,6 +7,39 @@ const spatialPattern = {
 };
 const added_keywords = new Set();
 
+function generate_map(){
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 
+      '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+}
+
+function update_markers_on_map(solutions, index_to_be_exhibited = 0){
+  let markers = [];
+  let marker;
+  let solution = solutions[index_to_be_exhibited]
+  var tooltipLayer = L.layerGroup();
+
+
+  for (const [vertex_id, location_info] of Object.entries(solution)) {
+    const [lat, lon, description] = [location_info.location.lat, location_info.location.lon, location_info.description]
+    marker = L.marker([lat, lon], {title: description}).addTo(map);
+    markers.push(marker)
+    marker.bindPopup(description);
+    L.tooltip({
+      permanent: true,
+      direction: 'auto',
+      className: 'my-label'
+    })
+    .setContent(description)
+    .setLatLng([lat,lon])
+    .addTo(tooltipLayer);
+  }
+  map.addLayer(tooltipLayer);
+  var group = new L.featureGroup(markers);
+  map.fitBounds(group.getBounds());
+}
+
 function generateSign(leftExclusion, rightExclusion) {
   if (leftExclusion && rightExclusion) {
     return "<>";
@@ -34,7 +67,7 @@ function updateDrawing() {
   //   spatialPatternDrawing.appendChild(element);
   // });
 
-  var image = new Image();
+  //var image = new Image();
   //image.src = 'data:image/png;base64,iVBORw0K...';
 
   fetch("/pattern_drawing", {
@@ -126,19 +159,7 @@ function addRelationship() {
 }
 
 function searchPattern() {
-  // const contentWindow = document.getElementById('map-iframe').contentWindow
-  // let mapKey
-
-  // Object.keys(contentWindow).forEach((key) => {
-  //     if (key.startsWith("map")) {
-  //         mapKey = key
-  //     }
-  // })
-  // const mapa = contentWindow[mapKey]
-  //let bounds = mapa.getBounds()
-  //let [north, east] = [bounds['_northEast']['lat'], bounds['_northEast']['lng']]
-
-  // http://127.0.0.1:5000
+  // http://127.0.0.1:5000  
   fetch("/search", {
     method: "POST",
     body: JSON.stringify({ method: "qqespm", spatial_pattern: JSON.stringify(spatialPattern) }),
@@ -148,10 +169,10 @@ function searchPattern() {
   })
     .then((res) => res.json())
     .then((data) => data["solutions"])
-    .then((text) => {
-      console.log(new Date().toLocaleString() + text);
+    .then((solutions_str) => {
+      update_markers_on_map(JSON.parse(solutions_str)['solutions'])
+      console.log(solutions_str);
     });
-  // document.getElementById('p-text-description').innerHTML = res;
 
   spatialPattern.vertices = [];
   spatialPattern.edges = [];
@@ -214,6 +235,8 @@ const relationSelect = document.getElementById("relation-select");
 const addRelationshipButton = document.getElementById("add-relationship-button");
 const searchPatternButton = document.getElementById("search-pattern-button");
 const spatialPatternDrawing = document.getElementById("spatial-pattern-drawing");
+const leafletMap = document.getElementById("leaflet-map");
+generate_map();
 
 document.body.addEventListener("click", (e) => {
   firstPoiKeywordsSelect.hidden = e.target !== firstPoiKeywordInput;
