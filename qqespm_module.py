@@ -289,13 +289,13 @@ class SpatialPatternGraph:
             G.add_edge('   '+edge.vi.keyword, '   '+edge.vj.keyword, data = {'id': edge.id, 'constraint': edge.constraint})
         return G
 
-    def plot(self, output_file = None, dpi = 80, node_color = np.array([[0.38431373, 0.61568627, 0.98823529]]), edge_color = 'k', ax = None):
+    def plot(self, output_file = None, dpi = 80, node_color = np.array([[0.3, 0.3, 0.3]]), edge_color = 'k', ax = None):
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edge_labels.html#networkx.drawing.nx_pylab.draw_networkx_edge_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_labels.html#networkx.drawing.nx_pylab.draw_networkx_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edges.html#networkx.drawing.nx_pylab.draw_networkx_edges
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_nodes.html#networkx.drawing.nx_pylab.draw_networkx_nodes
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx.html
-        
+        #node_color = np.array([[0.38431373, 0.61568627, 0.98823529]])
         font_sizes_by_pattern_size = {
             2: 28,
             3: 26,
@@ -311,9 +311,10 @@ class SpatialPatternGraph:
             fig.set_figwidth(21)
             fig.set_figheight(7)
         ax.set_xlim(-1.03, 1.35)
+        ax.set_ylim(-1.05, 1.15)
         nx.draw_networkx(G, pos=nx.circular_layout(G), ax = ax, with_labels=False, node_color=node_color, edge_color=edge_color)
         nx.draw_networkx_edges(G, pos=nx.circular_layout(G), ax = ax)
-        nx.draw_networkx_labels(G, pos = nx.circular_layout(G), font_size = font_sizes_by_pattern_size[pattern_size], font_weight='bold', font_color = 'b', horizontalalignment='left', verticalalignment='bottom', ax=ax)
+        nx.draw_networkx_labels(G, pos = nx.circular_layout(G), font_size = font_sizes_by_pattern_size[pattern_size], font_weight='bold', font_color = np.array([[0.3, 0.3, 0.3]]), horizontalalignment='left', verticalalignment='bottom', ax=ax)
 
         edge_labels = {('   '+edge.vi.keyword, '   '+edge.vj.keyword): edge.get_constraint_label() for edge in self.edges}
         nx.draw_networkx_edge_labels(G, pos = nx.circular_layout(G), edge_labels = edge_labels, ax = ax, font_size=font_sizes_by_pattern_size[pattern_size])
@@ -633,47 +634,6 @@ def find_skip_edges(edges_order):
             connected_vertices_subgraphs.append({edge.vi, edge.vj})
     return skip_edges        
 
-def compute_qq_e_matches_for_an_edge(ilq: ILQuadTree, edge, qq_n_matches_for_the_edge, candidate_objects = dict()):
-    nodes_i, nodes_j = zip(*qq_n_matches_for_the_edge)
-    oss, ots = [], []
-    for node_i in nodes_i:
-        oss_ = node_i.nodes
-        #if edge.id == 'hp' and len(oss_)>0:
-        #    pass
-        if candidate_objects_vi != set():
-            oss_ = list(filter(lambda c: c.item in candidate_objects_vi, oss_))
-        oss.extend(oss_)
-    for node_j in nodes_j:
-        ots_ = node_j.nodes
-        if candidate_objects_vj != set():
-            ots_ = list(filter(lambda c: c.item in candidate_objects_vj, ots_))
-        ots.extend(ots_)
-    # Now, we just need to analyse pairs of elements of (os X ot) to find e-matches
-    qq_e_matches = []
-    for os in oss:
-        for ot in ots:
-            #print('I\'m here:', edge.id)
-            if is_qq_e_match(ilq, os.item, ot.item, edge):
-                qq_e_matches.append((os.item,ot.item))
-    qq_e_matches = list(set(qq_e_matches))
-    return qq_e_matches
-
-def compute_qq_e_matches_for_an_edge2(ilq: ILQuadTree, edge, qq_n_matches_for_the_edge, candidate_objects = dict()):
-    #nodes_i, nodes_j = zip(*qq_n_matches_for_the_edge)
-    qq_e_matches = []
-    for node_i,node_j in qq_n_matches_for_the_edge:
-        oss = node_i.nodes
-        if candidate_objects_vi != set():
-            oss = list(filter(lambda c: c.item in candidate_objects_vi, oss))
-        ots = node_j.nodes
-        if candidate_objects_vj != set():
-            ots = list(filter(lambda c: c.item in candidate_objects_vj, ots))
-        for os in oss:
-            for ot in ots:
-                if is_qq_e_match(ilq, os.item, ot.item, edge):
-                    qq_e_matches.append((os.item,ot.item))
-    qq_e_matches = list(set(qq_e_matches))
-    return qq_e_matches
 
 def find_sub_qq_e_matches(qq_n_match, edge, ilq, candidate_objects):
     #print('started running find_sub_qq_e_matches')
