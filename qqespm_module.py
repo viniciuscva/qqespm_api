@@ -286,28 +286,37 @@ class SpatialPatternGraph:
     def to_networkx(self):
         G = nx.Graph()
         for edge in self.edges:
-            G.add_edge(edge.vi, edge.vj, data = {'id': edge.id, 'constraint': edge.constraint})
+            G.add_edge('   '+edge.vi.keyword, '   '+edge.vj.keyword, data = {'id': edge.id, 'constraint': edge.constraint})
         return G
-    
-    def plot(self, output_file = None, dpi=80, node_color = np.array([[0.38431373, 0.61568627, 0.98823529]]), edge_color = 'k', ax = None):
+
+    def plot(self, output_file = None, dpi = 80, node_color = np.array([[0.38431373, 0.61568627, 0.98823529]]), edge_color = 'k', ax = None):
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edge_labels.html#networkx.drawing.nx_pylab.draw_networkx_edge_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_labels.html#networkx.drawing.nx_pylab.draw_networkx_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edges.html#networkx.drawing.nx_pylab.draw_networkx_edges
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_nodes.html#networkx.drawing.nx_pylab.draw_networkx_nodes
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx.html
+        
+        font_sizes_by_pattern_size = {
+            2: 28,
+            3: 26,
+            4: 24,
+            5: 22,
+            6: 20
+        }
+        pattern_size = len(self.vertices)
         G = self.to_networkx()
         #nx.draw(G, pos=nx.circular_layout(G), node_color=node_color, edge_color=edge_color)
         if ax is None:
             fig, ax = plt.subplots()
-            fig.set_figwidth(14)
-            fig.set_figheight(8)
-        ax.set_xlim(-1.03, 1.32)
+            fig.set_figwidth(21)
+            fig.set_figheight(7)
+        ax.set_xlim(-1.03, 1.35)
         nx.draw_networkx(G, pos=nx.circular_layout(G), ax = ax, with_labels=False, node_color=node_color, edge_color=edge_color)
         nx.draw_networkx_edges(G, pos=nx.circular_layout(G), ax = ax)
-        nx.draw_networkx_labels(G, pos = nx.circular_layout(G), horizontalalignment='left', verticalalignment='bottom', ax=ax)
+        nx.draw_networkx_labels(G, pos = nx.circular_layout(G), font_size = font_sizes_by_pattern_size[pattern_size], font_weight='bold', font_color = 'b', horizontalalignment='left', verticalalignment='bottom', ax=ax)
 
-        edge_labels = {(edge.vi, edge.vj): edge.get_constraint_label() for edge in self.edges}
-        nx.draw_networkx_edge_labels(G, pos = nx.circular_layout(G), edge_labels = edge_labels, ax = ax, font_size=14)
+        edge_labels = {('   '+edge.vi.keyword, '   '+edge.vj.keyword): edge.get_constraint_label() for edge in self.edges}
+        nx.draw_networkx_edge_labels(G, pos = nx.circular_layout(G), edge_labels = edge_labels, ax = ax, font_size=font_sizes_by_pattern_size[pattern_size])
         plt.tight_layout()
         if output_file is not None:
             plt.savefig(output_file, dpi=dpi, bbox_inches="tight")
