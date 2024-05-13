@@ -31,7 +31,8 @@ body {
   padding: 0.75rem;
 }
 
-input,
+input[type="text"],
+input[type="number"],
 select,
 button {
   width: 100%;

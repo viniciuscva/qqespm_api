@@ -202,11 +202,12 @@ function updatePoiKeywordsSelect(input, select) {
 }
 
 function updateExclusionsConstraint() {
-  const [poi2, dmin, poi1] = [
+  const [poi1, poi2, dmin] = [
+    firstPoiKeywordInput.value,
     secondPoiKeywordInput.value,
     minDistanceInput.value,
-    firstPoiKeywordInput.value,
   ];
+
   leftExclusionConstraintLabel.innerHTML = `avoid other ${poi2} POIs closer than ${dmin}m from ${poi1} POI`;
   rightExclusionConstraintLabel.innerHTML = `avoid other ${poi1} POIs closer than ${dmin}m from ${poi2} POI`;
   exclusionConstraintContainer.hidden = minDistanceInput.value <= 0 || !poi1 || !poi2;
