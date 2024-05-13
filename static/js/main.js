@@ -1,5 +1,5 @@
 import calculateCircumferencePoints from "./calculateCircumferencePoints.js";
-import poiKeywords from "../data/pois.json" assert { type: "json" };
+import pois from "./pois.js";
 
 const map = L.map("leaflet-map").setView([-7.23, -35.88], 14);
 const spatialPattern = {
@@ -182,7 +182,7 @@ function searchPattern() {
 
 function updatePoiOptions(input, options) {
   const filter = input.value;
-  const filteredPois = poiKeywords.filter((p) => p.startsWith(filter));
+  const filteredPois = pois.filter((p) => p.startsWith(filter));
   options.innerHTML = "";
 
   filteredPois.forEach((poiKeyword) => {
@@ -200,8 +200,8 @@ function updatePoiOptions(input, options) {
 function updateExclusions() {
   const [poi1, poi2, dmin] = [firstPoiInput.value, secondPoiInput.value, minDistInput.value];
 
-  leftExclusionLabel.innerHTML = `There must not exist ${poi2} closer than ${dmin} meters`;
-  rightExclusionLabel.innerHTML = `There must not exist ${poi1} POIs closer than ${dmin}m`;
+  leftExclusionLabel.innerHTML = `There must not exist ${poi2} closer than ${dmin}m`;
+  rightExclusionLabel.innerHTML = `There must not exist ${poi1} closer than ${dmin}m`;
   exclusionGroup.hidden = minDistInput.value <= 0 || !poi1 || !poi2;
 
   if (exclusionGroup.hidden) {
@@ -231,7 +231,6 @@ const relationSelect = $("relation-select");
 const addRelationshipBtn = $("add-relationship-btn");
 const searchPatternBtn = $("search-pattern-btn");
 const spatialPatternDrawing = $("spatial-pattern-drawing");
-const leafletMap = $("leaflet-map");
 
 document.body.addEventListener("click", (e) => {
   firstPoiOptions.hidden = e.target !== firstPoiInput;
@@ -250,7 +249,14 @@ secondPoiInput.addEventListener("input", () => {
   updateAddRelationshipBtnState();
 });
 
-minDistInput.addEventListener("input", updateExclusions);
+minDistInput.addEventListener("input", (e) => {
+  e.target.value = Math.min(e.target.value, e.target.max);
+  updateExclusions();
+});
+
+maxDistInput.addEventListener("input", (e) => {
+  e.target.value = Math.min(e.target.value, e.target.max);
+});
 
 addRelationshipBtn.addEventListener("click", addRelationship);
 searchPatternBtn.addEventListener("click", searchPattern);

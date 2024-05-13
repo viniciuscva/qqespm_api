@@ -1,4 +1,4 @@
-[
+export default [
   "parking",
   "toy_library",
   "bench",
@@ -127,5 +127,5 @@
   "baking_oven",
   "waste_basket",
   "give_box",
-  "casino"
-]
+  "casino",
+];
