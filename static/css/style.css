@@ -46,11 +46,11 @@ label {
 
 input,
 button {
-  padding: 3px 4px;
+  padding: 0.25rem;
 }
 
 select {
-  padding: 1.5px 0px;
+  padding: 0.125rem 0px;
 }
 
 button {
