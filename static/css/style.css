@@ -129,7 +129,7 @@ img {
   font-size: 13px;
 }
 
-#button-group {
+#btn-group {
   display: flex;
   gap: 4rem;
   margin-top: 0.5rem;
