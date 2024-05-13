@@ -96,14 +96,6 @@ img {
   font-weight: 500;
 }
 
-.limited-width {
-  max-width: 17rem;
-}
-
-.limited-width > *:not(:last-child) {
-  margin-bottom: 0.25rem;
-}
-
 .poi-select {
   position: relative;
 }
@@ -146,7 +138,6 @@ img {
 #btn-group {
   display: flex;
   gap: 0.75rem;
-  max-width: 17rem;
   margin-top: 0.5rem;
 }
 
