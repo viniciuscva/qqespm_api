@@ -200,8 +200,8 @@ function updatePoiOptions(input, options) {
 function updateExclusions() {
   const [poi1, poi2, dmin] = [firstPoiInput.value, secondPoiInput.value, minDistInput.value];
 
-  leftExclusionLabel.innerHTML = `avoid other ${poi2} POIs closer than ${dmin}m from ${poi1} POI`;
-  rightExclusionLabel.innerHTML = `avoid other ${poi1} POIs closer than ${dmin}m from ${poi2} POI`;
+  leftExclusionLabel.innerHTML = `There must not exist ${poi2} closer than ${dmin} meters`;
+  rightExclusionLabel.innerHTML = `There must not exist ${poi1} POIs closer than ${dmin}m`;
   exclusionGroup.hidden = minDistInput.value <= 0 || !poi1 || !poi2;
 
   if (exclusionGroup.hidden) {
