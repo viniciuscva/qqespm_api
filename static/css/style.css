@@ -31,17 +31,16 @@ body {
   padding: 0.75rem;
 }
 
-input[type="text"],
-input[type="number"],
+label {
+  display: block;
+}
+
+input:not([type="checkbox"]),
 select,
 button {
   width: 100%;
   border: 1px solid gray;
   border-radius: 0.25rem;
-}
-
-label {
-  display: block;
 }
 
 input,
@@ -76,14 +75,16 @@ img {
 #grid {
   display: grid;
   grid-auto-rows: 1fr;
-  grid-template-columns: 3fr 5fr;
+  grid-template-columns: max-content 1fr;
   flex-grow: 1;
   border: 1px solid #aaa;
+  overflow: auto;
 }
 
 .section {
   padding: 0.5rem;
   border: 1px solid #aaa;
+  overflow: auto;
 }
 
 .section > *:not(:last-child) {
@@ -92,6 +93,14 @@ img {
 
 .section-title {
   font-weight: 500;
+}
+
+.limited-width {
+  max-width: 16rem;
+}
+
+.limited-width > *:not(:last-child) {
+  margin-bottom: 0.25rem;
 }
 
 .poi-select {
@@ -125,15 +134,19 @@ img {
   gap: 0.5rem;
 }
 
-.exclusion-constraint {
-  font-size: 13px;
+#exclusion-group > div > * {
+  vertical-align: middle;
 }
 
-#btn-group {
+.exclusion {
+  font-size: 0.875rem;
+}
+
+/* #btn-group {
   display: flex;
   gap: 4rem;
   margin-top: 0.5rem;
-}
+} */
 
 /* #spatial-pattern-wrapper {
   padding: 2rem;

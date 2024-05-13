@@ -18,26 +18,28 @@
 
     <main id="grid">
       <section class="section">
-        <h2 class="section-title">Spatial Pattern Builder</h2>
+        <div class="limited-width">
+          <h2 class="section-title">Spatial Pattern Builder</h2>
 
-        <div class="poi-select">
-          <label>First POI:</label>
-          <input type="text" id="first-poi-input" class="poi-input" />
-          <div id="first-poi-options" class="poi-options" hidden></div>
-        </div>
+          <div class="poi-select">
+            <label>First POI:</label>
+            <input type="text" id="first-poi-input" class="poi-input" />
+            <div id="first-poi-options" class="poi-options" hidden></div>
+          </div>
 
-        <div class="poi-select">
-          <label>Second POI:</label>
-          <input type="text" id="second-poi-input" class="poi-input" />
-          <div id="second-poi-options" class="poi-options" hidden></div>
-        </div>
+          <div class="poi-select">
+            <label>Second POI:</label>
+            <input type="text" id="second-poi-input" class="poi-input" />
+            <div id="second-poi-options" class="poi-options" hidden></div>
+          </div>
 
-        <div>
-          <label>Distance (meters)</label>
-          <div id="dist-input-group">
-            <input type="number" id="min-dist-input" value="0" min="0" max="9999" />
-            <span>to</span>
-            <input type="number" id="max-dist-input" value="1000" min="0" max="9999" />
+          <div>
+            <label>Distance (meters)</label>
+            <div id="dist-input-group">
+              <input type="number" id="min-dist-input" value="0" min="0" max="9999" />
+              <span>to</span>
+              <input type="number" id="max-dist-input" value="1000" min="0" max="9999" />
+            </div>
           </div>
         </div>
 
@@ -52,8 +54,8 @@
           </div>
         </div>
 
-        <div>
-          <span>Relation:</span>
+        <div class="limited-width">
+          <label>Relation:</label>
           <select id="relation-select">
             <option value="null">No relation</option>
             <option value="intersects">Intersects</option>
@@ -63,7 +65,7 @@
           </select>
         </div>
 
-        <div id="btn-group">
+        <div id="btn-group" class="limited-width">
           <button id="add-relationship-btn" disabled>Add relationship</button>
           <button id="search-pattern-btn" disabled>Search pattern</button>
         </div>
