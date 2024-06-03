@@ -6,7 +6,7 @@ const spatialPattern = {
   vertices: [],
   edges: [],
 };
-const added_keywords = new Set();
+const addedKeywords = new Set();
 
 function generateMap() {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -20,12 +20,12 @@ function updateMarkersOnMap(indexToBeExhibited = 0) {
   const solution = solutions[indexToBeExhibited];
   const tooltipLayer = L.layerGroup();
 
-  for (const [vertex_id, location_info] of Object.entries(solution)) {
-    const [lat, lon, description] = [
-      location_info.location.lat,
-      location_info.location.lon,
-      location_info.description,
-    ];
+  for (const [vertexId, locationInfo] of Object.entries(solution)) {
+    const { lat, lon } = locationInfo.location;
+    let { description } = locationInfo;
+    if (description.startsWith("nan ")) {
+      description = description.replace("nan", "Unnamed");
+    }
     const marker = L.marker([lat, lon], { title: description }).addTo(map);
     markers.push(marker);
     marker.bindPopup(description);
@@ -70,38 +70,17 @@ function updateDrawing() {
   //   spatialPatternDrawing.appendChild(element);
   // });
 
-  //var image = new Image();
-  //image.src = 'data:image/png;base64,iVBORw0K...';
-
   fetch("/pattern_drawing", {
     method: "POST",
     body: JSON.stringify({ spatial_pattern: JSON.stringify(spatialPattern) }),
     headers: {
       "Content-type": "application/json; charset=UTF-8",
-      //"Content-type": "text/plain; charset=UTF-8",
     },
   })
     .then((res) => res.text())
-    //.then((data) => data['img'])
-    //.then((img_str) => {
-    //var image = new Image();
-    //image.style.display = 'block';
     .then((data) => {
       spatialPatternDrawing.innerHTML = data;
     });
-
-  //   let buffer=Uint8Array.from(atob(img_str), c => c.charCodeAt(0));
-  //   let blob=new Blob([buffer], { type: "image/png" });
-  //   let url=URL.createObjectURL(blob);
-  //   let img=document.createElement("img");
-  //   img.src=url;
-
-  //   spatialPatternDrawing.appendChild(img);
-  //   // image.style.width = '100px';
-  //   // image.style.height = '100px';
-  //   //image.src = `data:image/png;charset=utf-8;base64, ${img_str}`;
-  //   //spatialPatternDrawing.appendChild(image);
-  // });
 }
 
 function addRelationship() {
@@ -111,15 +90,15 @@ function addRelationship() {
     alert("The second POI keyword should be different than the first one!");
     return;
   }
-  if (!added_keywords.has(wi)) {
+  if (!addedKeywords.has(wi)) {
     spatialPattern.vertices.push({ id: spatialPattern.vertices.length, keyword: wi });
   }
-  added_keywords.add(wi);
+  addedKeywords.add(wi);
 
-  if (!added_keywords.has(wj)) {
+  if (!addedKeywords.has(wj)) {
     spatialPattern.vertices.push({ id: spatialPattern.vertices.length, keyword: wj });
   }
-  added_keywords.add(wj);
+  addedKeywords.add(wj);
 
   let id_wi, id_wj;
   spatialPattern.vertices.forEach((value, index) => {
@@ -179,7 +158,7 @@ function searchPattern() {
 
   spatialPattern.vertices = [];
   spatialPattern.edges = [];
-  added_keywords.clear();
+  addedKeywords.clear();
 }
 
 function updatePoiOptions(input, options) {
@@ -223,7 +202,7 @@ function updateResultData(resultIndex = 0) {
   for (const poi of result) {
     const p = document.createElement("p");
     p.innerText = poi.description;
-    if (p.innerText.startsWith("nan")) {
+    if (p.innerText.startsWith("nan ")) {
       p.innerText = p.innerText.replace("nan", "Unnamed");
     }
     resultData.appendChild(p);
@@ -240,6 +219,7 @@ function updateResultBtnGroup() {
       selected.classList.remove("selected");
       button.classList.add("selected");
       updateResultData(x);
+      updateMarkersOnMap(x);
     });
     resultBtnGroup.appendChild(button);
   }
