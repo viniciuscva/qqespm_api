@@ -215,22 +215,35 @@ function updateAddRelationshipBtnState() {
   addRelationshipBtn.disabled = !poi1 || !poi2;
 }
 
-const $ = (id) => document.getElementById(id);
-const firstPoiInput = $("first-poi-input");
-const firstPoiOptions = $("first-poi-options");
-const secondPoiInput = $("second-poi-input");
-const secondPoiOptions = $("second-poi-options");
-const minDistInput = $("min-dist-input");
-const maxDistInput = $("max-dist-input");
-const exclusionGroup = $("exclusion-group");
-const leftExclusionCheckbox = $("left-exclusion-checkbox");
-const rightExclusionCheckbox = $("right-exclusion-checkbox");
-const leftExclusionLabel = $("left-exclusion-label");
-const rightExclusionLabel = $("right-exclusion-label");
-const relationSelect = $("relation-select");
-const addRelationshipBtn = $("add-relationship-btn");
-const searchPatternBtn = $("search-pattern-btn");
-const spatialPatternDrawing = $("spatial-pattern-drawing");
+function updateResultBtnGroup() {
+  for (let x = 1; x <= 30; x++) {
+    const button = document.createElement("button");
+    button.innerText = x;
+    button.className = "result-btn";
+    resultBtnGroup.appendChild(button);
+    if (x === 1) {
+      button.className += " selected";
+    }
+  }
+}
+
+const getElem = (id) => document.getElementById(id);
+const firstPoiInput = getElem("first-poi-input");
+const firstPoiOptions = getElem("first-poi-options");
+const secondPoiInput = getElem("second-poi-input");
+const secondPoiOptions = getElem("second-poi-options");
+const minDistInput = getElem("min-dist-input");
+const maxDistInput = getElem("max-dist-input");
+const exclusionGroup = getElem("exclusion-group");
+const leftExclusionCheckbox = getElem("left-exclusion-checkbox");
+const rightExclusionCheckbox = getElem("right-exclusion-checkbox");
+const leftExclusionLabel = getElem("left-exclusion-label");
+const rightExclusionLabel = getElem("right-exclusion-label");
+const relationSelect = getElem("relation-select");
+const addRelationshipBtn = getElem("add-relationship-btn");
+const searchPatternBtn = getElem("search-pattern-btn");
+const spatialPatternDrawing = getElem("spatial-pattern-drawing");
+const resultBtnGroup = getElem("result-btn-group");
 
 document.body.addEventListener("click", (e) => {
   firstPoiOptions.hidden = e.target !== firstPoiInput;
@@ -263,4 +276,5 @@ searchPatternBtn.addEventListener("click", searchPattern);
 
 updatePoiOptions(firstPoiInput, firstPoiOptions);
 updatePoiOptions(secondPoiInput, secondPoiOptions);
+updateResultBtnGroup();
 generateMap();

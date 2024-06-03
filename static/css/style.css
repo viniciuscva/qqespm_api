@@ -155,6 +155,26 @@ img {
   transform: translate(-50%, -50%);
 }
 
+#result-btn-group {
+  overflow: auto;
+  text-wrap: nowrap;
+}
+
+.result-btn {
+  width: 2rem;
+  height: 2rem;
+}
+
+.result-btn:not(:first-child) {
+  margin-left: 0.25rem;
+}
+
+.result-btn.selected {
+  background-color: #16a34a;
+  border: 1px solid #14532d;
+  color: white;
+}
+
 #leaflet-map {
   height: 100%;
 }
