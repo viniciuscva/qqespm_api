@@ -19,6 +19,7 @@ function updateMarkersOnMap(indexToBeExhibited = 0) {
   const markers = [];
   const solution = solutions[indexToBeExhibited];
   const tooltipLayer = L.layerGroup();
+  const markersLayer = L.layerGroup();
 
   for (const [vertexId, locationInfo] of Object.entries(solution)) {
     const { lat, lon } = locationInfo.location;
@@ -26,7 +27,9 @@ function updateMarkersOnMap(indexToBeExhibited = 0) {
     if (description.startsWith("nan ")) {
       description = description.replace("nan", "Unnamed");
     }
-    const marker = L.marker([lat, lon], { title: description }).addTo(map);
+    const marker = L.marker([lat, lon], { title: description }).addTo(markersLayer);
+
+    // const marker = L.marker([lat, lon], { title: description }).addTo(map);
     markers.push(marker);
     marker.bindPopup(description);
     L.tooltip({
@@ -39,8 +42,16 @@ function updateMarkersOnMap(indexToBeExhibited = 0) {
       .addTo(tooltipLayer);
   }
   map.addLayer(tooltipLayer);
+  map.addLayer(markersLayer);
   const group = new L.featureGroup(markers);
   map.fitBounds(group.getBounds());
+  if (previousTooltipLayer != undefined){
+    // previousTooltipLayer.unbindTooltip();
+    map.removeLayer(previousTooltipLayer);
+    map.removeLayer(previousMarkersLayer)
+  }
+  previousTooltipLayer = tooltipLayer;
+  previousMarkersLayer = markersLayer;
 }
 
 function generateSign(leftExclusion, rightExclusion) {
@@ -244,6 +255,8 @@ const spatialPatternDrawing = getElem("spatial-pattern-drawing");
 const resultData = getElem("result-data");
 const resultBtnGroup = getElem("result-btn-group");
 let solutions;
+let previousTooltipLayer;
+let previousMarkersLayer;
 
 document.body.addEventListener("click", (e) => {
   firstPoiOptions.hidden = e.target !== firstPoiInput;
