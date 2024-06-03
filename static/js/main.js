@@ -15,7 +15,7 @@ function generateMap() {
   }).addTo(map);
 }
 
-function updateMarkersOnMap(solutions, indexToBeExhibited = 0) {
+function updateMarkersOnMap(indexToBeExhibited = 0) {
   const markers = [];
   const solution = solutions[indexToBeExhibited];
   const tooltipLayer = L.layerGroup();
@@ -171,8 +171,10 @@ function searchPattern() {
     .then((res) => res.json())
     .then((data) => data["solutions"])
     .then((solutions_str) => {
-      updateMarkersOnMap(JSON.parse(solutions_str)["solutions"]);
-      console.log(solutions_str);
+      solutions = JSON.parse(solutions_str).solutions;
+      updateMarkersOnMap();
+      updateResultData();
+      updateResultBtnGroup();
     });
 
   spatialPattern.vertices = [];
@@ -215,15 +217,31 @@ function updateAddRelationshipBtnState() {
   addRelationshipBtn.disabled = !poi1 || !poi2;
 }
 
-function updateResultBtnGroup() {
-  for (let x = 1; x <= 30; x++) {
-    const button = document.createElement("button");
-    button.innerText = x;
-    button.className = "result-btn";
-    resultBtnGroup.appendChild(button);
-    if (x === 1) {
-      button.className += " selected";
+function updateResultData(resultIndex = 0) {
+  const result = Object.values(solutions[resultIndex]);
+  resultData.innerHTML = "";
+  for (const poi of result) {
+    const p = document.createElement("p");
+    p.innerText = poi.description;
+    if (p.innerText.startsWith("nan")) {
+      p.innerText = p.innerText.replace("nan", "Unnamed");
     }
+    resultData.appendChild(p);
+  }
+}
+
+function updateResultBtnGroup() {
+  for (let x = 0; x < solutions.length; x++) {
+    const button = document.createElement("button");
+    button.innerText = x + 1;
+    button.className = x === 0 ? "result-btn selected" : "result-btn";
+    button.addEventListener("click", () => {
+      const selected = document.querySelector(".result-btn.selected");
+      selected.classList.remove("selected");
+      button.classList.add("selected");
+      updateResultData(x);
+    });
+    resultBtnGroup.appendChild(button);
   }
 }
 
@@ -243,7 +261,9 @@ const relationSelect = getElem("relation-select");
 const addRelationshipBtn = getElem("add-relationship-btn");
 const searchPatternBtn = getElem("search-pattern-btn");
 const spatialPatternDrawing = getElem("spatial-pattern-drawing");
+const resultData = getElem("result-data");
 const resultBtnGroup = getElem("result-btn-group");
+let solutions;
 
 document.body.addEventListener("click", (e) => {
   firstPoiOptions.hidden = e.target !== firstPoiInput;
@@ -276,5 +296,4 @@ searchPatternBtn.addEventListener("click", searchPattern);
 
 updatePoiOptions(firstPoiInput, firstPoiOptions);
 updatePoiOptions(secondPoiInput, secondPoiOptions);
-updateResultBtnGroup();
 generateMap();

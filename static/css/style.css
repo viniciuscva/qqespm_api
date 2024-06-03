@@ -150,9 +150,19 @@ img {
   height: 100%;
 }
 
-.drawing-poi {
+/* .drawing-poi {
   position: absolute;
   transform: translate(-50%, -50%);
+} */
+
+#query-results {
+  display: flex;
+  flex-direction: column;
+}
+
+#result-data {
+  flex-grow: 1;
+  margin-top: 0.5rem;
 }
 
 #result-btn-group {
