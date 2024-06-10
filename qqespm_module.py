@@ -289,7 +289,7 @@ class SpatialPatternGraph:
             G.add_edge('   '+edge.vi.keyword, '   '+edge.vj.keyword, data = {'id': edge.id, 'constraint': edge.constraint})
         return G
 
-    def plot(self, output_file = None, dpi = 80, node_color = np.array([[0.3, 0.3, 0.3]]), edge_color = 'k', ax = None):
+    def plot(self, output_file = None, dpi = 80, node_color = np.array([[0.1, 0.1, 0.1]]), edge_color = 'k', ax = None):
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edge_labels.html#networkx.drawing.nx_pylab.draw_networkx_edge_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_labels.html#networkx.drawing.nx_pylab.draw_networkx_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edges.html#networkx.drawing.nx_pylab.draw_networkx_edges
@@ -314,7 +314,7 @@ class SpatialPatternGraph:
         ax.set_ylim(-1.05, 1.15)
         nx.draw_networkx(G, pos=nx.circular_layout(G), ax = ax, with_labels=False, node_color=node_color, edge_color=edge_color)
         nx.draw_networkx_edges(G, pos=nx.circular_layout(G), ax = ax)
-        nx.draw_networkx_labels(G, pos = nx.circular_layout(G), font_size = font_sizes_by_pattern_size[pattern_size], font_weight='bold', font_color = np.array([[0.3, 0.3, 0.3]]), horizontalalignment='left', verticalalignment='bottom', ax=ax)
+        nx.draw_networkx_labels(G, pos = nx.circular_layout(G), font_size = font_sizes_by_pattern_size[pattern_size], font_weight='bold', font_color = np.array([[0.1, 0.1, 0.1]]), horizontalalignment='left', verticalalignment='bottom', ax=ax)
 
         edge_labels = {('   '+edge.vi.keyword, '   '+edge.vj.keyword): edge.get_constraint_label() for edge in self.edges}
         nx.draw_networkx_edge_labels(G, pos = nx.circular_layout(G), edge_labels = edge_labels, ax = ax, font_size=font_sizes_by_pattern_size[pattern_size])
