@@ -5,6 +5,7 @@ import qqespm_module as qq
 from PIL import Image
 import base64
 import io
+import matplotlib.pyplot as plt
 
 
 app = Flask(__name__)
@@ -61,7 +62,12 @@ def get_spatial_pattern_drawing():
     req_data = request.get_json()
     spatial_pattern_json = req_data['spatial_pattern']
     sp = qq.SpatialPatternGraph.from_json(spatial_pattern_json)
-    sp.plot(output_file='drawing.png', dpi=50)
+    fig, ax = plt.subplots()
+    fig.set_figwidth(21)
+    fig.set_figheight(7)
+    ax.set_xlim(-1.03, 1.35)
+    ax.set_ylim(-1.05, 1.15)
+    sp.plot(output_file='drawing.png', dpi=50, ax=ax)
 
     #file = request.files['image']
     #img = Image.open(file.stream)
