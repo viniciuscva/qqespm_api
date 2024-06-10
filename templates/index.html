@@ -37,14 +37,14 @@
           <div id="dist-input-group">
             <input type="number" id="min-dist-input" value="0" min="0" max="9999" />
             <span>to</span>
-            <input type="number" id="max-dist-input" value="1000" min="0" max="9999" />
+            <input type="number" id="max-dist-input" value="1000" min="-1" max="99999" />
           </div>
         </div>
 
         <div id="exclusion-group" hidden>
           <div>
             <input type="checkbox" id="left-exclusion-checkbox" />
-            <span id="left-exclusion-label" class="exclusion"></span>
+            <span id="left-exclusion-label" class="exclusion" checked></span>
           </div>
           <div>
             <input type="checkbox" id="right-exclusion-checkbox" />

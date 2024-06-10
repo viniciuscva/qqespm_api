@@ -19,6 +19,7 @@ from collections import defaultdict
 import os
 import matplotlib.pyplot as plt
 import networkx as nx
+from calculateCircumferencePoints import calculateCircumferencePoints
 
 
 ilq = None
@@ -172,6 +173,8 @@ class SpatialEdge:
         vj = edge_dict['vj']
         lij = edge_dict['lij']
         uij = edge_dict['uij']
+        if uij is None:
+            uij = float('inf')
         sign = edge_dict['sign']
         relation = edge_dict['relation']
         vi = SpatialVertex.from_id(vi, vertices)
@@ -284,12 +287,23 @@ class SpatialPatternGraph:
         return self.__hash__() < another.__hash__()
     
     def to_networkx(self):
-        G = nx.Graph()
+        G = nx.DiGraph()
         for edge in self.edges:
-            G.add_edge('   '+edge.vi.keyword, '   '+edge.vj.keyword, data = {'id': edge.id, 'constraint': edge.constraint})
+            if edge.constraint['relation'] is not None: # edge is qualitative
+                G.add_edge('   '+edge.vi.keyword, '   '+edge.vj.keyword, data = {'id': edge.id, 'constraint': edge.constraint},
+                       weight = 3, color = 'b')
+            elif edge.constraint['is_exclusive']:
+                G.add_edge('   '+edge.vi.keyword, '   '+edge.vj.keyword, data = {'id': edge.id, 'constraint': edge.constraint},
+                       weight = 3, color = 'r')
+            else:
+                G.add_edge('   '+edge.vi.keyword, '   '+edge.vj.keyword, data = {'id': edge.id, 'constraint': edge.constraint},
+                       weight = 3, color = 'k')
+
+            # G.add_edge('   '+edge.vi.keyword, '   '+edge.vj.keyword, data = {'id': edge.id, 'constraint': edge.constraint},
+            #            weight = 2)
         return G
 
-    def plot(self, output_file = None, dpi = 80, node_color = np.array([[0.1, 0.1, 0.1]]), edge_color = 'k', ax = None):
+    def plot(self, output_file = None, dpi = 80, node_color = np.array([[0.1, 0.1, 0.1]]), edge_color = 'k', ax = None, use_networkx_layout=False):
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edge_labels.html#networkx.drawing.nx_pylab.draw_networkx_edge_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_labels.html#networkx.drawing.nx_pylab.draw_networkx_labels
         #https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pylab.draw_networkx_edges.html#networkx.drawing.nx_pylab.draw_networkx_edges
@@ -310,14 +324,25 @@ class SpatialPatternGraph:
             fig, ax = plt.subplots()
             fig.set_figwidth(21)
             fig.set_figheight(7)
-        ax.set_xlim(-1.03, 1.35)
+        ax.set_xlim(-1.03, 1.55)
         ax.set_ylim(-1.05, 1.15)
-        nx.draw_networkx(G, pos=nx.circular_layout(G), ax = ax, with_labels=False, node_color=node_color, edge_color=edge_color)
-        nx.draw_networkx_edges(G, pos=nx.circular_layout(G), ax = ax)
-        nx.draw_networkx_labels(G, pos = nx.circular_layout(G), font_size = font_sizes_by_pattern_size[pattern_size], font_weight='bold', font_color = np.array([[0.1, 0.1, 0.1]]), horizontalalignment='left', verticalalignment='bottom', ax=ax)
+
+        circumf_points = calculateCircumferencePoints(len(self.vertices))
+        vertices_layout = {'   '+v.keyword: circumf_points[i] for i, v in enumerate(self.vertices) }
+        if use_networkx_layout:
+            vertices_layout = nx.circular_layout(G)
+
+        edges_nx = G.edges()
+        edges_colors = [G[u][v]['color'] for u,v in edges_nx]
+        edges_weights = [G[u][v]['weight'] for u,v in edges_nx]
+
+        nx.draw_networkx(G, pos=vertices_layout, ax = ax, with_labels=False, node_color=node_color, edge_color=edge_color)
+        nx.draw_networkx_edges(G, pos=vertices_layout, ax = ax, arrows=True, arrowsize=50, 
+                               edge_color=edges_colors, width=edges_weights)
+        nx.draw_networkx_labels(G, pos = vertices_layout, font_size = font_sizes_by_pattern_size[pattern_size], font_weight='bold', font_color = np.array([[0.1, 0.1, 0.1]]), horizontalalignment='left', verticalalignment='bottom', ax=ax)
 
         edge_labels = {('   '+edge.vi.keyword, '   '+edge.vj.keyword): edge.get_constraint_label() for edge in self.edges}
-        nx.draw_networkx_edge_labels(G, pos = nx.circular_layout(G), edge_labels = edge_labels, ax = ax, font_size=font_sizes_by_pattern_size[pattern_size])
+        nx.draw_networkx_edge_labels(G, pos = vertices_layout, edge_labels = edge_labels, ax = ax, font_size=font_sizes_by_pattern_size[pattern_size])
         plt.tight_layout()
         if output_file is not None:
             plt.savefig(output_file, dpi=dpi, bbox_inches="tight")
@@ -831,7 +856,7 @@ def QQESPM(sp, ilquadtree: ILQuadTree = None, data_dir = os.path.dirname(os.path
             print('Reading CSV and generating ILQuadtree ...')
         #pois = read_df_csv(data_dir)
         #total_bbox_ilq = get_df_surrounding_bbox(pois)
-        ilq = generate_ilquadtree()
+        ilq = generate_ilquadtree(data_dir=data_dir, keyword_columns = ['amenity','shop','tourism','landuse','leisure','building'])
     if sp.pattern_type == 'simple_graph':
         pool_obj = ThreadPool(int(multiprocessing.cpu_count()-1))
         t0 = time()

@@ -1,7 +1,7 @@
 import calculateCircumferencePoints from "./calculateCircumferencePoints.js";
-import pois from "./pois.js";
+import pois from "./pois_london.js";
 
-const map = L.map("leaflet-map").setView([-7.23, -35.88], 14);
+const map = L.map("leaflet-map").setView([51.509865, -0.118092], 14); // -7.23, -35.88
 const spatialPattern = {
   vertices: [],
   edges: [],
@@ -25,7 +25,10 @@ function updateMarkersOnMap(indexToBeExhibited = 0) {
     const { lat, lon } = locationInfo.location;
     let { description } = locationInfo;
     if (description.startsWith("nan ")) {
-      description = description.replace("nan", "Unnamed");
+      description = description.replace("nan ", "Unnamed ");
+    }
+    if (description == ""){
+      description = "Unnamed "
     }
     const marker = L.marker([lat, lon], { title: description }).addTo(markersLayer);
 
@@ -117,7 +120,10 @@ function addRelationship() {
     if (value.keyword == wj) id_wj = index;
   });
 
-  const [lij, uij] = [minDistInput.value, maxDistInput.value];
+  let [lij, uij] = [minDistInput.value, maxDistInput.value];
+  if (Number(uij) < Number(lij)){
+    uij = Infinity;
+  }
   const sign = generateSign(leftExclusionCheckbox.checked, rightExclusionCheckbox.checked);
   const relation = relationSelect.value === "null" ? null : relationSelect.value;
   let relationship_already_added = false;
