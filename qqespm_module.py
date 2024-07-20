@@ -236,7 +236,10 @@ class SpatialPatternGraph:
 
     @staticmethod
     def from_json(json_str):
-        sp_dict = json.loads(json_str)
+        try:
+            sp_dict = json.loads(json_str)
+        except:
+            sp_dict = json_str
         
         vertices = sp_dict['vertices']
         for i, vertex in enumerate(vertices):
