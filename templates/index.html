@@ -4,54 +4,56 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QQESPM - Spatial Pattern Search</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
   </head>
 
   <body>
-    <h1 class="title">QQESPM - Spatial Pattern Search</h1>
+    <h1 id="title">QQESPM - Spatial Pattern Search</h1>
 
-    <div class="main">
-      <div class="section">
-        <p class="section-title">Spatial Pattern Builder</p>
+    <main id="grid">
+      <section class="section">
+        <h2 class="section-title">Search Pattern</h2>
 
-        <div class="poi-keywords-container">
+        <div class="poi-select">
           <label>First POI:</label>
-          <input type="text" id="first-poi-keyword-input" class="poi-keyword-input" />
-          <div id="first-poi-keywords-select" class="poi-keywords-select" hidden></div>
+          <input type="text" id="first-poi-input" class="poi-input" />
+          <div id="first-poi-options" class="poi-options" hidden></div>
         </div>
 
-        <div class="poi-keywords-container">
+        <div class="poi-select">
           <label>Second POI:</label>
-          <input type="text" id="second-poi-keyword-input" class="poi-keyword-input" />
-          <div id="second-poi-keywords-select" class="poi-keywords-select" hidden></div>
+          <input type="text" id="second-poi-input" class="poi-input" />
+          <div id="second-poi-options" class="poi-options" hidden></div>
         </div>
 
-        <label>Distance (meters)</label>
-        <div id="distance-container">
-          <input type="number" id="min-distance-input" value="0" min="0" max="9999" />
-          <span>to</span>
-          <input type="number" id="max-distance-input" value="1000" min="0" max="9999" />
-        </div>
-
-        <div id="exclusion-constraint-container" hidden>
-          <div>
-            <input type="checkbox" id="left-exclusion-constraint-checkbox" />
-            <span id="left-exclusion-constraint-label" class="exclusion-constraint"></span>
-          </div>
-          <div>
-            <input type="checkbox" id="right-exclusion-constraint-checkbox" />
-            <span id="right-exclusion-constraint-label" class="exclusion-constraint"></span>
+        <div>
+          <label>Distance (meters)</label>
+          <div id="dist-input-group">
+            <input type="number" id="min-dist-input" value="0" min="0" max="9999" />
+            <span>to</span>
+            <input type="number" id="max-dist-input" value="1000" min="-1" max="99999" />
           </div>
         </div>
 
-        <div id="relation-container">
-          <span>Relation:</span>
+        <div id="exclusion-group" hidden>
+          <div>
+            <input type="checkbox" id="left-exclusion-checkbox" />
+            <span id="left-exclusion-label" class="exclusion" checked></span>
+          </div>
+          <div>
+            <input type="checkbox" id="right-exclusion-checkbox" />
+            <span id="right-exclusion-label" class="exclusion"></span>
+          </div>
+        </div>
+
+        <div>
+          <label>Relation:</label>
           <select id="relation-select">
             <option value="null">No relation</option>
             <option value="intersects">Intersects</option>
@@ -61,30 +63,32 @@
           </select>
         </div>
 
-        <div id="button-container">
-          <button id="add-relationship-button" disabled>Add relationship</button>
-          <button id="search-pattern-button" disabled>Search pattern</button>
+        <div id="btn-group">
+          <button id="add-relationship-btn" disabled>Add relationship</button>
+          <button id="search-pattern-btn" disabled>Search pattern</button>
         </div>
+      </section>
 
-      </div>
-
-      <div id="spatial-pattern-container" class="section">
+      <section id="spatial-pattern-wrapper" class="section">
         <div id="spatial-pattern-drawing"></div>
-      </div>
+      </section>
 
-      <div class="section">
-        <p class="section-title">Query results</p>
-        Show the id, location and description for each result of the search pattern in a table.
-      </div>
-      <div class="section">
-        <!-- <iframe id="map-iframe" class="map" , src="/map"></iframe> -->
+      <section id="query-results" class="section">
+        <h2 class="section-title">Query results</h2>
+        <div id="result-data"></div>
+        <div id="result-btn-group"></div>
+      </section>
+
+      <section class="section">
         <div id="leaflet-map"></div>
-      </div>
-    </div>
+      </section>
+    </main>
 
-    <script>
-      var map = L.map('leaflet-map').setView([-7.23, -35.88], 14);
-     </script>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
     <script src="{{ url_for('static', filename='js/main.js') }}" type="module"></script>
   </body>
 </html>

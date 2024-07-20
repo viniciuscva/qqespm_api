@@ -1,43 +1,60 @@
 import calculateCircumferencePoints from "./calculateCircumferencePoints.js";
-import poiKeywords from "../data/pois.json" assert { type: "json" };
+import pois from "./pois_london.js";
 
+const map = L.map("leaflet-map").setView([51.509865, -0.118092], 14); // -7.23, -35.88
 const spatialPattern = {
   vertices: [],
   edges: [],
 };
-const added_keywords = new Set();
+const addedKeywords = new Set();
 
-function generate_map(){
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: 
-      '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+function generateMap() {
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:
+      '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 }
 
-function update_markers_on_map(solutions, index_to_be_exhibited = 0){
-  let markers = [];
-  let marker;
-  let solution = solutions[index_to_be_exhibited]
-  var tooltipLayer = L.layerGroup();
+function updateMarkersOnMap(indexToBeExhibited = 0) {
+  const markers = [];
+  const solution = solutions[indexToBeExhibited];
+  const tooltipLayer = L.layerGroup();
+  const markersLayer = L.layerGroup();
 
+  for (const [vertexId, locationInfo] of Object.entries(solution)) {
+    const { lat, lon } = locationInfo.location;
+    let { description } = locationInfo;
+    if (description.startsWith("nan ")) {
+      description = description.replace("nan ", "Unnamed ");
+    }
+    if (description == ""){
+      description = "Unnamed "
+    }
+    const marker = L.marker([lat, lon], { title: description }).addTo(markersLayer);
 
-  for (const [vertex_id, location_info] of Object.entries(solution)) {
-    const [lat, lon, description] = [location_info.location.lat, location_info.location.lon, location_info.description]
-    marker = L.marker([lat, lon], {title: description}).addTo(map);
-    markers.push(marker)
+    // const marker = L.marker([lat, lon], { title: description }).addTo(map);
+    markers.push(marker);
     marker.bindPopup(description);
     L.tooltip({
       permanent: true,
-      direction: 'auto',
-      className: 'my-label'
+      direction: "auto",
+      className: "my-label",
     })
-    .setContent(description)
-    .setLatLng([lat,lon])
-    .addTo(tooltipLayer);
+      .setContent(description)
+      .setLatLng([lat, lon])
+      .addTo(tooltipLayer);
   }
   map.addLayer(tooltipLayer);
-  var group = new L.featureGroup(markers);
+  map.addLayer(markersLayer);
+  const group = new L.featureGroup(markers);
   map.fitBounds(group.getBounds());
+  if (previousTooltipLayer != undefined){
+    // previousTooltipLayer.unbindTooltip();
+    map.removeLayer(previousTooltipLayer);
+    map.removeLayer(previousMarkersLayer)
+  }
+  previousTooltipLayer = tooltipLayer;
+  previousMarkersLayer = markersLayer;
 }
 
 function generateSign(leftExclusion, rightExclusion) {
@@ -67,55 +84,35 @@ function updateDrawing() {
   //   spatialPatternDrawing.appendChild(element);
   // });
 
-  //var image = new Image();
-  //image.src = 'data:image/png;base64,iVBORw0K...';
-
   fetch("/pattern_drawing", {
     method: "POST",
     body: JSON.stringify({ spatial_pattern: JSON.stringify(spatialPattern) }),
     headers: {
       "Content-type": "application/json; charset=UTF-8",
-      //"Content-type": "text/plain; charset=UTF-8",
     },
   })
     .then((res) => res.text())
-    //.then((data) => data['img'])
-    //.then((img_str) => {
-      //var image = new Image();
-      //image.style.display = 'block';
-    .then(data => spatialPatternDrawing.innerHTML = data)
-
-    //   let buffer=Uint8Array.from(atob(img_str), c => c.charCodeAt(0));
-    //   let blob=new Blob([buffer], { type: "image/png" });
-    //   let url=URL.createObjectURL(blob);
-    //   let img=document.createElement("img");
-    //   img.src=url;
-
-    //   spatialPatternDrawing.appendChild(img);
-    //   // image.style.width = '100px';
-    //   // image.style.height = '100px';
-    //   //image.src = `data:image/png;charset=utf-8;base64, ${img_str}`;
-    //   //spatialPatternDrawing.appendChild(image);
-    // });
-
+    .then((data) => {
+      spatialPatternDrawing.innerHTML = data;
+    });
 }
 
 function addRelationship() {
-  const [wi, wj] = [firstPoiKeywordInput.value, secondPoiKeywordInput.value];
+  const [wi, wj] = [firstPoiInput.value, secondPoiInput.value];
 
   if (wi == wj) {
     alert("The second POI keyword should be different than the first one!");
     return;
   }
-  if (!added_keywords.has(wi)) {
+  if (!addedKeywords.has(wi)) {
     spatialPattern.vertices.push({ id: spatialPattern.vertices.length, keyword: wi });
   }
-  added_keywords.add(wi);
+  addedKeywords.add(wi);
 
-  if (!added_keywords.has(wj)) {
+  if (!addedKeywords.has(wj)) {
     spatialPattern.vertices.push({ id: spatialPattern.vertices.length, keyword: wj });
   }
-  added_keywords.add(wj);
+  addedKeywords.add(wj);
 
   let id_wi, id_wj;
   spatialPattern.vertices.forEach((value, index) => {
@@ -123,11 +120,11 @@ function addRelationship() {
     if (value.keyword == wj) id_wj = index;
   });
 
-  const [lij, uij] = [minDistanceInput.value, maxDistanceInput.value];
-  const sign = generateSign(
-    leftExclusionConstraintCheckbox.checked,
-    rightExclusionConstraintCheckbox.checked
-  );
+  let [lij, uij] = [minDistInput.value, maxDistInput.value];
+  if (Number(uij) < Number(lij)){
+    uij = Infinity;
+  }
+  const sign = generateSign(leftExclusionCheckbox.checked, rightExclusionCheckbox.checked);
   const relation = relationSelect.value === "null" ? null : relationSelect.value;
   let relationship_already_added = false;
 
@@ -154,12 +151,12 @@ function addRelationship() {
   }
 
   updateDrawing();
-  searchPatternButton.disabled = false;
+  searchPatternBtn.disabled = false;
   console.log("Current pattern:", JSON.stringify(spatialPattern));
 }
 
 function searchPattern() {
-  // http://127.0.0.1:5000  
+  // http://127.0.0.1:5000
   fetch("/search", {
     method: "POST",
     body: JSON.stringify({ method: "qqespm", spatial_pattern: JSON.stringify(spatialPattern) }),
@@ -170,95 +167,132 @@ function searchPattern() {
     .then((res) => res.json())
     .then((data) => data["solutions"])
     .then((solutions_str) => {
-      update_markers_on_map(JSON.parse(solutions_str)['solutions'])
-      console.log(solutions_str);
+      solutions = JSON.parse(solutions_str).solutions;
+      updateMarkersOnMap();
+      updateResultData();
+      updateResultBtnGroup();
     });
 
   spatialPattern.vertices = [];
   spatialPattern.edges = [];
-  added_keywords.clear();
+  addedKeywords.clear();
 }
 
-function updatePoiKeywordsSelect(input, select) {
-  const inputKeyword = input.value;
-  const filteredPoiKeywords = poiKeywords.filter((p) => p.startsWith(inputKeyword));
-  select.innerHTML = "";
+function updatePoiOptions(input, options) {
+  const filter = input.value;
+  const filteredPois = pois.filter((p) => p.startsWith(filter));
+  options.innerHTML = "";
 
-  filteredPoiKeywords.forEach((poiKeyword) => {
+  filteredPois.forEach((poiKeyword) => {
     const option = document.createElement("div");
     option.innerText = poiKeyword;
     option.addEventListener("click", () => {
       input.value = poiKeyword;
-      updateExclusionsConstraint();
-      updateAddRelationButtonState();
+      updateExclusions();
+      updateAddRelationshipBtnState();
     });
-    select.appendChild(option);
+    options.appendChild(option);
   });
 }
 
-function updateExclusionsConstraint() {
-  const [poi2, dmin, poi1] = [
-    secondPoiKeywordInput.value,
-    minDistanceInput.value,
-    firstPoiKeywordInput.value,
-  ];
-  leftExclusionConstraintLabel.innerHTML = `avoid other ${poi2} POIs closer than ${dmin}m from ${poi1} POI`;
-  rightExclusionConstraintLabel.innerHTML = `avoid other ${poi1} POIs closer than ${dmin}m from ${poi2} POI`;
-  exclusionConstraintContainer.hidden = minDistanceInput.value <= 0 || !poi1 || !poi2;
-  if (exclusionConstraintContainer.hidden) {
-    leftExclusionConstraintCheckbox.checked = false;
-    rightExclusionConstraintCheckbox.checked = false;
+function updateExclusions() {
+  const [poi1, poi2, dmin] = [firstPoiInput.value, secondPoiInput.value, minDistInput.value];
+
+  leftExclusionLabel.innerHTML = `There must not exist ${poi2} closer than ${dmin}m`;
+  rightExclusionLabel.innerHTML = `There must not exist ${poi1} closer than ${dmin}m`;
+  exclusionGroup.hidden = minDistInput.value <= 0 || !poi1 || !poi2;
+
+  if (exclusionGroup.hidden) {
+    leftExclusionCheckbox.checked = false;
+    rightExclusionCheckbox.checked = false;
   }
 }
 
-function updateAddRelationButtonState() {
-  const [poi1, poi2] = [firstPoiKeywordInput.value, secondPoiKeywordInput.value];
-  addRelationshipButton.disabled = !poi1 || !poi2;
+function updateAddRelationshipBtnState() {
+  const [poi1, poi2] = [firstPoiInput.value, secondPoiInput.value];
+  addRelationshipBtn.disabled = !poi1 || !poi2;
 }
 
-const firstPoiKeywordInput = document.getElementById("first-poi-keyword-input");
-const secondPoiKeywordInput = document.getElementById("second-poi-keyword-input");
-const firstPoiKeywordsSelect = document.getElementById("first-poi-keywords-select");
-const secondPoiKeywordsSelect = document.getElementById("second-poi-keywords-select");
-const minDistanceInput = document.getElementById("min-distance-input");
-const maxDistanceInput = document.getElementById("max-distance-input");
-const exclusionConstraintContainer = document.getElementById("exclusion-constraint-container");
-const leftExclusionConstraintCheckbox = document.getElementById(
-  "left-exclusion-constraint-checkbox"
-);
-const rightExclusionConstraintCheckbox = document.getElementById(
-  "right-exclusion-constraint-checkbox"
-);
-const leftExclusionConstraintLabel = document.getElementById("left-exclusion-constraint-label");
-const rightExclusionConstraintLabel = document.getElementById("right-exclusion-constraint-label");
-const relationSelect = document.getElementById("relation-select");
-const addRelationshipButton = document.getElementById("add-relationship-button");
-const searchPatternButton = document.getElementById("search-pattern-button");
-const spatialPatternDrawing = document.getElementById("spatial-pattern-drawing");
-const leafletMap = document.getElementById("leaflet-map");
-generate_map();
+function updateResultData(resultIndex = 0) {
+  const result = Object.values(solutions[resultIndex]);
+  resultData.innerHTML = "";
+  for (const poi of result) {
+    const p = document.createElement("p");
+    p.innerText = poi.description;
+    if (p.innerText.startsWith("nan ")) {
+      p.innerText = p.innerText.replace("nan", "Unnamed");
+    }
+    resultData.appendChild(p);
+  }
+}
+
+function updateResultBtnGroup() {
+  for (let x = 0; x < solutions.length; x++) {
+    const button = document.createElement("button");
+    button.innerText = x + 1;
+    button.className = x === 0 ? "result-btn selected" : "result-btn";
+    button.addEventListener("click", () => {
+      const selected = document.querySelector(".result-btn.selected");
+      selected.classList.remove("selected");
+      button.classList.add("selected");
+      updateResultData(x);
+      updateMarkersOnMap(x);
+    });
+    resultBtnGroup.appendChild(button);
+  }
+}
+
+const getElem = (id) => document.getElementById(id);
+const firstPoiInput = getElem("first-poi-input");
+const firstPoiOptions = getElem("first-poi-options");
+const secondPoiInput = getElem("second-poi-input");
+const secondPoiOptions = getElem("second-poi-options");
+const minDistInput = getElem("min-dist-input");
+const maxDistInput = getElem("max-dist-input");
+const exclusionGroup = getElem("exclusion-group");
+const leftExclusionCheckbox = getElem("left-exclusion-checkbox");
+const rightExclusionCheckbox = getElem("right-exclusion-checkbox");
+const leftExclusionLabel = getElem("left-exclusion-label");
+const rightExclusionLabel = getElem("right-exclusion-label");
+const relationSelect = getElem("relation-select");
+const addRelationshipBtn = getElem("add-relationship-btn");
+const searchPatternBtn = getElem("search-pattern-btn");
+const spatialPatternDrawing = getElem("spatial-pattern-drawing");
+const resultData = getElem("result-data");
+const resultBtnGroup = getElem("result-btn-group");
+let solutions;
+let previousTooltipLayer;
+let previousMarkersLayer;
 
 document.body.addEventListener("click", (e) => {
-  firstPoiKeywordsSelect.hidden = e.target !== firstPoiKeywordInput;
-  secondPoiKeywordsSelect.hidden = e.target !== secondPoiKeywordInput;
+  firstPoiOptions.hidden = e.target !== firstPoiInput;
+  secondPoiOptions.hidden = e.target !== secondPoiInput;
 });
 
-firstPoiKeywordInput.addEventListener("input", () => {
-  updatePoiKeywordsSelect(firstPoiKeywordInput, firstPoiKeywordsSelect);
-  updateExclusionsConstraint();
-  updateAddRelationButtonState();
+firstPoiInput.addEventListener("input", () => {
+  updatePoiOptions(firstPoiInput, firstPoiOptions);
+  updateExclusions();
+  updateAddRelationshipBtnState();
 });
 
-secondPoiKeywordInput.addEventListener("input", () => {
-  updatePoiKeywordsSelect(secondPoiKeywordInput, secondPoiKeywordsSelect);
-  updateExclusionsConstraint();
-  updateAddRelationButtonState();
+secondPoiInput.addEventListener("input", () => {
+  updatePoiOptions(secondPoiInput, secondPoiOptions);
+  updateExclusions();
+  updateAddRelationshipBtnState();
 });
 
-minDistanceInput.addEventListener("input", updateExclusionsConstraint);
+minDistInput.addEventListener("input", (e) => {
+  e.target.value = Math.min(e.target.value, e.target.max);
+  updateExclusions();
+});
 
-addRelationshipButton.addEventListener("click", addRelationship);
-searchPatternButton.addEventListener("click", searchPattern);
+maxDistInput.addEventListener("input", (e) => {
+  e.target.value = Math.min(e.target.value, e.target.max);
+});
 
-updatePoiKeywordsSelect(firstPoiKeywordInput, firstPoiKeywordsSelect);
-updatePoiKeywordsSelect(secondPoiKeywordInput, secondPoiKeywordsSelect);
+addRelationshipBtn.addEventListener("click", addRelationship);
+searchPatternBtn.addEventListener("click", searchPattern);
+
+updatePoiOptions(firstPoiInput, firstPoiOptions);
+updatePoiOptions(secondPoiInput, secondPoiOptions);
+generateMap();
