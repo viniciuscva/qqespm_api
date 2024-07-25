@@ -1,12 +1,31 @@
-import calculateCircumferencePoints from "./calculateCircumferencePoints.js";
-import pois from "./pois_london.js";
+import generatePoints from "./generate-points.js";
+import pois from "./pois-london.js";
+
+const getElem = (id) => document.getElementById(id);
+const firstPoiInput = getElem("first-poi-input");
+const firstPoiOptions = getElem("first-poi-options");
+const secondPoiInput = getElem("second-poi-input");
+const secondPoiOptions = getElem("second-poi-options");
+const minDistInput = getElem("min-dist-input");
+const maxDistInput = getElem("max-dist-input");
+const exclusionGroup = getElem("exclusion-group");
+const leftExclusionCheckbox = getElem("left-exclusion-checkbox");
+const rightExclusionCheckbox = getElem("right-exclusion-checkbox");
+const leftExclusionLabel = getElem("left-exclusion-label");
+const rightExclusionLabel = getElem("right-exclusion-label");
+const relationSelect = getElem("relation-select");
+const addRelationshipBtn = getElem("add-relationship-btn");
+const searchPatternBtn = getElem("search-pattern-btn");
+const spatialPatternDrawing = getElem("spatial-pattern-drawing");
+const resultData = getElem("result-data");
+const resultBtnGroup = getElem("result-btn-group");
 
 const map = L.map("leaflet-map").setView([51.509865, -0.118092], 14); // -7.23, -35.88
-const spatialPattern = {
-  vertices: [],
-  edges: [],
-};
+const spatialPattern = { vertices: [], edges: [] };
 const addedKeywords = new Set();
+let solutions;
+let previousTooltipLayer;
+let previousMarkersLayer;
 
 function generateMap() {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -24,15 +43,16 @@ function updateMarkersOnMap(indexToBeExhibited = 0) {
   for (const [vertexId, locationInfo] of Object.entries(solution)) {
     const { lat, lon } = locationInfo.location;
     let { description } = locationInfo;
+
     if (description.startsWith("nan ")) {
       description = description.replace("nan ", "Unnamed ");
     }
-    if (description == ""){
-      description = "Unnamed "
+    if (description == "") {
+      description = "Unnamed ";
     }
+
     const marker = L.marker([lat, lon], { title: description }).addTo(markersLayer);
 
-    // const marker = L.marker([lat, lon], { title: description }).addTo(map);
     markers.push(marker);
     marker.bindPopup(description);
     L.tooltip({
@@ -44,15 +64,19 @@ function updateMarkersOnMap(indexToBeExhibited = 0) {
       .setLatLng([lat, lon])
       .addTo(tooltipLayer);
   }
+
+  const group = new L.featureGroup(markers);
+
   map.addLayer(tooltipLayer);
   map.addLayer(markersLayer);
-  const group = new L.featureGroup(markers);
   map.fitBounds(group.getBounds());
-  if (previousTooltipLayer != undefined){
+
+  if (previousTooltipLayer != undefined) {
     // previousTooltipLayer.unbindTooltip();
     map.removeLayer(previousTooltipLayer);
-    map.removeLayer(previousMarkersLayer)
+    map.removeLayer(previousMarkersLayer);
   }
+
   previousTooltipLayer = tooltipLayer;
   previousMarkersLayer = markersLayer;
 }
@@ -71,7 +95,7 @@ function generateSign(leftExclusion, rightExclusion) {
 
 function updateDrawing() {
   // const numberOfPois = spatialPattern.vertices.length;
-  // const points = calculateCircumferencePoints(numberOfPois);
+  // const points = generatePoints(numberOfPois);
   // spatialPatternDrawing.innerHTML = "";
 
   // points.forEach(([left, top], index) => {
@@ -114,26 +138,18 @@ function addRelationship() {
   }
   addedKeywords.add(wj);
 
-  let id_wi, id_wj;
-  spatialPattern.vertices.forEach((value, index) => {
-    if (value.keyword == wi) id_wi = index;
-    if (value.keyword == wj) id_wj = index;
-  });
+  const id_wi = spatialPattern.vertices.findIndex((value) => value.keyword === wi);
+  const id_wj = spatialPattern.vertices.findIndex((value) => value.keyword === wj);
 
   let [lij, uij] = [minDistInput.value, maxDistInput.value];
-  if (Number(uij) < Number(lij)){
+  if (Number(uij) < Number(lij)) {
     uij = Infinity;
   }
   const sign = generateSign(leftExclusionCheckbox.checked, rightExclusionCheckbox.checked);
   const relation = relationSelect.value === "null" ? null : relationSelect.value;
-  let relationship_already_added = false;
-
-  spatialPattern.edges.forEach((edge) => {
-    if ((edge.vi == id_wi && edge.vj == id_wj) || (edge.vj == id_wi && edge.vi == id_wj)) {
-      relationship_already_added = true;
-      return;
-    }
-  });
+  const relationshipAlreadyAdded = spatialPattern.edges.some(
+    (edge) => (edge.vi == id_wi && edge.vj == id_wj) || (edge.vj == id_wi && edge.vi == id_wj)
+  );
 
   const edge = {
     id: id_wi + "-" + id_wj,
@@ -144,7 +160,7 @@ function addRelationship() {
     sign: sign,
     relation: relation,
   };
-  if (relationship_already_added) {
+  if (relationshipAlreadyAdded) {
     alert("Relationship already added!");
   } else {
     spatialPattern.edges.push(edge);
@@ -165,9 +181,9 @@ function searchPattern() {
     },
   })
     .then((res) => res.json())
-    .then((data) => data["solutions"])
-    .then((solutions_str) => {
-      solutions = JSON.parse(solutions_str).solutions;
+    .then((data) => {
+      const solutionsStr = data.solutions;
+      solutions = JSON.parse(solutionsStr).solutions;
       updateMarkersOnMap();
       updateResultData();
       updateResultBtnGroup();
@@ -185,12 +201,14 @@ function updatePoiOptions(input, options) {
 
   filteredPois.forEach((poiKeyword) => {
     const option = document.createElement("div");
+
     option.innerText = poiKeyword;
     option.addEventListener("click", () => {
       input.value = poiKeyword;
       updateExclusions();
       updateAddRelationshipBtnState();
     });
+
     options.appendChild(option);
   });
 }
@@ -216,8 +234,10 @@ function updateAddRelationshipBtnState() {
 function updateResultData(resultIndex = 0) {
   const result = Object.values(solutions[resultIndex]);
   resultData.innerHTML = "";
+
   for (const poi of result) {
     const p = document.createElement("p");
+
     p.innerText = poi.description;
     if (p.innerText.startsWith("nan ")) {
       p.innerText = p.innerText.replace("nan", "Unnamed");
@@ -229,6 +249,7 @@ function updateResultData(resultIndex = 0) {
 function updateResultBtnGroup() {
   for (let x = 0; x < solutions.length; x++) {
     const button = document.createElement("button");
+
     button.innerText = x + 1;
     button.className = x === 0 ? "result-btn selected" : "result-btn";
     button.addEventListener("click", () => {
@@ -241,28 +262,6 @@ function updateResultBtnGroup() {
     resultBtnGroup.appendChild(button);
   }
 }
-
-const getElem = (id) => document.getElementById(id);
-const firstPoiInput = getElem("first-poi-input");
-const firstPoiOptions = getElem("first-poi-options");
-const secondPoiInput = getElem("second-poi-input");
-const secondPoiOptions = getElem("second-poi-options");
-const minDistInput = getElem("min-dist-input");
-const maxDistInput = getElem("max-dist-input");
-const exclusionGroup = getElem("exclusion-group");
-const leftExclusionCheckbox = getElem("left-exclusion-checkbox");
-const rightExclusionCheckbox = getElem("right-exclusion-checkbox");
-const leftExclusionLabel = getElem("left-exclusion-label");
-const rightExclusionLabel = getElem("right-exclusion-label");
-const relationSelect = getElem("relation-select");
-const addRelationshipBtn = getElem("add-relationship-btn");
-const searchPatternBtn = getElem("search-pattern-btn");
-const spatialPatternDrawing = getElem("spatial-pattern-drawing");
-const resultData = getElem("result-data");
-const resultBtnGroup = getElem("result-btn-group");
-let solutions;
-let previousTooltipLayer;
-let previousMarkersLayer;
 
 document.body.addEventListener("click", (e) => {
   firstPoiOptions.hidden = e.target !== firstPoiInput;
