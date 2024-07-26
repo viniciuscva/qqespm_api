@@ -236,12 +236,9 @@ function updateResultData(resultIndex = 0) {
   resultData.innerHTML = "";
 
   for (const poi of result) {
+    const desc = poi.description;
     const p = document.createElement("p");
-
-    p.innerText = poi.description;
-    if (p.innerText.startsWith("nan ")) {
-      p.innerText = p.innerText.replace("nan", "Unnamed");
-    }
+    p.innerText = desc.startsWith("nan ") ? desc.replace("nan", "Unnamed") : desc;
     resultData.appendChild(p);
   }
 }
