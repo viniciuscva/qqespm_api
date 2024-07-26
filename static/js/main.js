@@ -94,31 +94,57 @@ function generateSign(leftExclusion, rightExclusion) {
 }
 
 function updateDrawing() {
-  // const numberOfPois = spatialPattern.vertices.length;
-  // const points = generatePoints(numberOfPois);
-  // spatialPatternDrawing.innerHTML = "";
+  const canvas = spatialPatternDrawing;
+  const ctx = canvas.getContext("2d");
+  const lineWidth = 2;
+  const fontSize = 14;
+  const rectPadding = 3;
 
-  // points.forEach(([left, top], index) => {
-  //   const element = document.createElement("div");
-  //   const poiKeyword = spatialPattern.vertices[index].keyword;
-  //   element.className = "drawing-poi";
-  //   element.innerText = poiKeyword;
-  //   element.style.left = left + "%";
-  //   element.style.top = top + "%";
-  //   spatialPatternDrawing.appendChild(element);
-  // });
+  // Setup canvas and context
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+  ctx.lineWidth = lineWidth;
+  ctx.font = `${fontSize}px system-ui, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
 
-  fetch("/pattern_drawing", {
-    method: "POST",
-    body: JSON.stringify({ spatial_pattern: JSON.stringify(spatialPattern) }),
-    headers: {
-      "Content-type": "application/json; charset=UTF-8",
-    },
-  })
-    .then((res) => res.text())
-    .then((data) => {
-      spatialPatternDrawing.innerHTML = data;
-    });
+  // Generate points from number of points, canvas width, canvas height and circumference radius
+  const points = generatePoints(
+    spatialPattern.vertices.length,
+    canvas.width,
+    canvas.height,
+    (canvas.height - fontSize - lineWidth) / 2 - rectPadding
+  );
+
+  // Draw lines
+  points.forEach((point, index) => {
+    if (point === points.at(-1)) {
+      return;
+    }
+    const nextPoint = points[index + 1];
+    ctx.beginPath();
+    ctx.moveTo(point.x, point.y);
+    ctx.lineTo(nextPoint.x, nextPoint.y);
+    ctx.stroke();
+  });
+
+  // Draw keywords
+  points.forEach(({ x, y }, index) => {
+    const { keyword } = spatialPattern.vertices[index];
+    const textWidth = ctx.measureText(keyword).width;
+    const rect = [
+      x - textWidth / 2 - rectPadding,
+      y - fontSize / 2 - rectPadding,
+      textWidth + 2 * rectPadding,
+      fontSize + 2 * rectPadding,
+    ];
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(...rect);
+    ctx.strokeRect(...rect);
+    ctx.fillStyle = "#000";
+    ctx.fillText(keyword, x, y);
+  });
 }
 
 function addRelation() {
@@ -201,14 +227,12 @@ function updatePoiOptions(input, options) {
 
   filteredPois.forEach((poiKeyword) => {
     const option = document.createElement("div");
-
     option.innerText = poiKeyword;
     option.addEventListener("click", () => {
       input.value = poiKeyword;
       updateExclusions();
       updateAddRelationBtnState();
     });
-
     options.appendChild(option);
   });
 }
@@ -260,7 +284,9 @@ function updateResultBtnGroup() {
   }
 }
 
-document.body.addEventListener("click", (e) => {
+addEventListener("resize", updateDrawing);
+
+addEventListener("click", (e) => {
   firstPoiOptions.hidden = e.target !== firstPoiInput;
   secondPoiOptions.hidden = e.target !== secondPoiInput;
 });

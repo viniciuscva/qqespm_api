@@ -1,15 +1,13 @@
-function generatePoints(numberOfPoints) {
-  if (numberOfPoints <= 0) {
-    return [];
-  }
-
-  const angleStep = (2 * Math.PI) / numberOfPoints;
+function generatePoints(numberOfPoints, width, height, radius) {
+  const centerX = width / 2;
+  const centerY = height / 2;
   const points = [];
 
   for (let i = 0; i < numberOfPoints; i++) {
-    const x = Math.cos(Math.PI / 2 + i * angleStep);
-    const y = Math.sin(Math.PI / 2 + i * angleStep);
-    points.push([100 * (x / 2 + 0.5), 100 * (-y / 2 + 0.5)]);
+    const angle = ((2 * Math.PI) / numberOfPoints) * i;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    points.push({ x, y });
   }
 
   return points;
