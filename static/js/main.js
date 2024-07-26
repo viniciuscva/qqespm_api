@@ -14,7 +14,7 @@ const rightExclusionCheckbox = getElem("right-exclusion-checkbox");
 const leftExclusionLabel = getElem("left-exclusion-label");
 const rightExclusionLabel = getElem("right-exclusion-label");
 const relationSelect = getElem("relation-select");
-const addRelationshipBtn = getElem("add-relationship-btn");
+const addRelationBtn = getElem("add-relation-btn");
 const searchPatternBtn = getElem("search-pattern-btn");
 const spatialPatternDrawing = getElem("spatial-pattern-drawing");
 const resultData = getElem("result-data");
@@ -121,7 +121,7 @@ function updateDrawing() {
     });
 }
 
-function addRelationship() {
+function addRelation() {
   const [wi, wj] = [firstPoiInput.value, secondPoiInput.value];
 
   if (wi == wj) {
@@ -147,7 +147,7 @@ function addRelationship() {
   }
   const sign = generateSign(leftExclusionCheckbox.checked, rightExclusionCheckbox.checked);
   const relation = relationSelect.value === "null" ? null : relationSelect.value;
-  const relationshipAlreadyAdded = spatialPattern.edges.some(
+  const relationAlreadyAdded = spatialPattern.edges.some(
     (edge) => (edge.vi == id_wi && edge.vj == id_wj) || (edge.vj == id_wi && edge.vi == id_wj)
   );
 
@@ -160,8 +160,8 @@ function addRelationship() {
     sign: sign,
     relation: relation,
   };
-  if (relationshipAlreadyAdded) {
-    alert("Relationship already added!");
+  if (relationAlreadyAdded) {
+    alert("Relation already added!");
   } else {
     spatialPattern.edges.push(edge);
   }
@@ -206,7 +206,7 @@ function updatePoiOptions(input, options) {
     option.addEventListener("click", () => {
       input.value = poiKeyword;
       updateExclusions();
-      updateAddRelationshipBtnState();
+      updateAddRelationBtnState();
     });
 
     options.appendChild(option);
@@ -226,9 +226,9 @@ function updateExclusions() {
   }
 }
 
-function updateAddRelationshipBtnState() {
+function updateAddRelationBtnState() {
   const [poi1, poi2] = [firstPoiInput.value, secondPoiInput.value];
-  addRelationshipBtn.disabled = !poi1 || !poi2;
+  addRelationBtn.disabled = !poi1 || !poi2;
 }
 
 function updateResultData(resultIndex = 0) {
@@ -271,13 +271,13 @@ document.body.addEventListener("click", (e) => {
 firstPoiInput.addEventListener("input", () => {
   updatePoiOptions(firstPoiInput, firstPoiOptions);
   updateExclusions();
-  updateAddRelationshipBtnState();
+  updateAddRelationBtnState();
 });
 
 secondPoiInput.addEventListener("input", () => {
   updatePoiOptions(secondPoiInput, secondPoiOptions);
   updateExclusions();
-  updateAddRelationshipBtnState();
+  updateAddRelationBtnState();
 });
 
 minDistInput.addEventListener("input", (e) => {
@@ -289,7 +289,7 @@ maxDistInput.addEventListener("input", (e) => {
   e.target.value = Math.min(e.target.value, e.target.max);
 });
 
-addRelationshipBtn.addEventListener("click", addRelationship);
+addRelationBtn.addEventListener("click", addRelation);
 searchPatternBtn.addEventListener("click", searchPattern);
 
 updatePoiOptions(firstPoiInput, firstPoiOptions);
