@@ -117,14 +117,13 @@ function updateDrawing() {
   );
 
   // Draw lines
-  points.forEach((point, index) => {
-    if (point === points.at(-1)) {
-      return;
-    }
-    const nextPoint = points[index + 1];
+  spatialPattern.edges.forEach((edge) => {
+    const startPoint = points[edge.vi];
+    const endPoint = points[edge.vj];
+
     ctx.beginPath();
-    ctx.moveTo(point.x, point.y);
-    ctx.lineTo(nextPoint.x, nextPoint.y);
+    ctx.moveTo(startPoint.x, startPoint.y);
+    ctx.lineTo(endPoint.x, endPoint.y);
     ctx.stroke();
   });
 
