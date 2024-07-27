@@ -116,18 +116,46 @@ function updateDrawing() {
     (canvas.height - fontSize - lineWidth) / 2 - rectPadding
   );
 
-  // Draw lines
   spatialPattern.edges.forEach((edge) => {
-    const startPoint = points[edge.vi];
-    const endPoint = points[edge.vj];
-
+    // Draw lines
+    const [p1, p2] = [points[edge.vi], points[edge.vj]];
     ctx.beginPath();
-    ctx.moveTo(startPoint.x, startPoint.y);
-    ctx.lineTo(endPoint.x, endPoint.y);
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
     ctx.stroke();
+
+    // Draw constraint label
+    let label;
+
+    if (edge.lij > 0 && edge.uij < Infinity) {
+      label = `between ${Math.round(edge.lij)} and ${Math.round(edge.uij)}m`;
+    } else if (edge.lij > 0) {
+      label = `more than ${Math.round(edge.lij)}m`;
+    } else if (edge.uij < Infinity) {
+      label = `less than ${Math.round(edge.uij)}m`;
+    }
+    if (edge.relation !== null) {
+      label += ` ${edge.relation}`;
+    }
+
+    const textWidth = ctx.measureText(label).width;
+    const midpoint = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+    const rect = [
+      midpoint.x - textWidth / 2 - rectPadding,
+      midpoint.y - fontSize / 2 - rectPadding,
+      textWidth + 2 * rectPadding,
+      fontSize + 2 * rectPadding,
+    ];
+
+    // Draw white rect (text background)
+    ctx.fillStyle = "white";
+    ctx.fillRect(...rect);
+    // Draw text
+    ctx.fillStyle = "black";
+    ctx.fillText(label, midpoint.x, midpoint.y);
   });
 
-  // Draw keywords
+  // Draw POI keywords
   points.forEach(({ x, y }, index) => {
     const { keyword } = spatialPattern.vertices[index];
     const textWidth = ctx.measureText(keyword).width;
@@ -138,10 +166,13 @@ function updateDrawing() {
       fontSize + 2 * rectPadding,
     ];
 
-    ctx.fillStyle = "#fff";
+    // Draw white rect (text background)
+    ctx.fillStyle = "white";
     ctx.fillRect(...rect);
+    // Draw rect border
     ctx.strokeRect(...rect);
-    ctx.fillStyle = "#000";
+    // Draw text
+    ctx.fillStyle = "black";
     ctx.fillText(keyword, x, y);
   });
 }
