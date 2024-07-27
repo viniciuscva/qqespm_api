@@ -146,13 +146,21 @@ function updateDrawing() {
       textWidth + 2 * rectPadding,
       fontSize + 2 * rectPadding,
     ];
+    const delta = { x: p2.x - p1.x, y: p2.y - p1.y };
+    const angle = Math.atan2(delta.y, delta.x);
 
+    // Rotate canvas
+    ctx.translate(midpoint.x, midpoint.y);
+    ctx.rotate(angle);
+    ctx.translate(-midpoint.x, -midpoint.y);
     // Draw white rect (text background)
     ctx.fillStyle = "white";
     ctx.fillRect(...rect);
     // Draw text
     ctx.fillStyle = "black";
     ctx.fillText(label, midpoint.x, midpoint.y);
+    // Reset canvas
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   });
 
   // Draw POI keywords
