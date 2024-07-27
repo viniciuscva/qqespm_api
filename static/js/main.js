@@ -98,13 +98,13 @@ function updateDrawing() {
   const ctx = canvas.getContext("2d");
   const lineWidth = 2;
   const fontSize = 14;
-  const rectPadding = 3;
+  const rectPadding = 2;
 
   // Setup canvas and context
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
   ctx.lineWidth = lineWidth;
-  ctx.font = `${fontSize}px system-ui, sans-serif`;
+  ctx.font = `500 ${fontSize}px system-ui, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
