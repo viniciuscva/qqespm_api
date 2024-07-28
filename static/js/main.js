@@ -147,8 +147,8 @@ function updateDrawing() {
       fontSize + 2 * rectPadding,
     ];
     let angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-    if (angle > 1.5708 || angle < -1.5708) {
-      angle -= 3.14159;
+    if (angle > Math.PI / 2 || angle < -Math.PI / 2) {
+      angle -= Math.PI;
     }
 
     // Rotate canvas
