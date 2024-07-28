@@ -146,8 +146,10 @@ function updateDrawing() {
       textWidth + 2 * rectPadding,
       fontSize + 2 * rectPadding,
     ];
-    const delta = { x: p2.x - p1.x, y: p2.y - p1.y };
-    const angle = Math.atan2(delta.y, delta.x);
+    let angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    if (angle > 1.5708 || angle < -1.5708) {
+      angle -= 3.14159;
+    }
 
     // Rotate canvas
     ctx.translate(midpoint.x, midpoint.y);
