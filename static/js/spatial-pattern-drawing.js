@@ -49,23 +49,6 @@ function findIntersectionPoint(segment, rectangle) {
   const [x, y, width, height] = rectangle;
   const [xMin, yMin, xMax, yMax] = [x, y, x + width, y + height];
 
-  function getIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
-    const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-    if (denominator === 0) return null;
-
-    const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
-    const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;
-
-    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
-      return {
-        x: x1 + t * (x2 - x1),
-        y: y1 + t * (y2 - y1),
-      };
-    }
-
-    return null;
-  }
-
   const edges = [
     { x1: xMin, y1: yMin, x2: xMax, y2: yMin }, // Top edge
     { x1: xMax, y1: yMin, x2: xMax, y2: yMax }, // Right edge
@@ -74,11 +57,15 @@ function findIntersectionPoint(segment, rectangle) {
   ];
 
   for (const edge of edges) {
-    const intersection = getIntersection(x1, y1, x2, y2, edge.x1, edge.y1, edge.x2, edge.y2);
-    if (intersection) return intersection;
-  }
+    const [x3, y3, x4, y4] = [edge.x1, edge.y1, edge.x2, edge.y2];
+    const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
+    const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;
 
-  return null; // No intersection
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+      return { x: x1 + t * (x2 - x1), y: y1 + t * (y2 - y1) };
+    }
+  }
 }
 
 function updateDrawing(canvas, spatialPattern) {
