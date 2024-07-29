@@ -110,27 +110,27 @@ function updateDrawing(canvas, spatialPattern) {
 
     // Draw constraint label
     const label = getConstraintLabel(edge);
-    const [textX, textY] = [(p1.x + p2.x) / 2, (p1.y + p2.y) / 2];
-    const rect = createRect(ctx, label, textX, textY);
+    const [labelX, labelY] = [(p1.x + p2.x) / 2, (p1.y + p2.y) / 2];
+    const labelRect = createRect(ctx, label, labelX, labelY);
     const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-    const textAngle = angle > Math.PI / 2 || angle < -Math.PI / 2 ? angle - Math.PI : angle;
+    const labelAngle = angle > Math.PI / 2 || angle < -Math.PI / 2 ? angle - Math.PI : angle;
 
     // Rotate canvas
-    ctx.translate(textX, textY);
-    ctx.rotate(textAngle);
-    ctx.translate(-textX, -textY);
+    ctx.translate(labelX, labelY);
+    ctx.rotate(labelAngle);
+    ctx.translate(-labelX, -labelY);
     // Draw white rect (text background)
     ctx.fillStyle = "white";
-    ctx.fillRect(...rect);
+    ctx.fillRect(...labelRect);
     // Draw text
     ctx.fillStyle = "black";
-    ctx.fillText(label, textX, textY);
+    ctx.fillText(label, labelX, labelY);
     // Reset canvas
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     // Draw direction arrow
-    const p2rect = createRect(ctx, spatialPattern.vertices[edge.vj].keyword, p2.x, p2.y);
-    const arrowhead = findIntersectionPoint([p1.x, p1.y, p2.x, p2.y], p2rect);
+    const p2KeywordRect = createRect(ctx, spatialPattern.vertices[edge.vj].keyword, p2.x, p2.y);
+    const arrowhead = findIntersectionPoint([p1.x, p1.y, p2.x, p2.y], p2KeywordRect);
 
     // Translate and rotate canvas
     ctx.translate(arrowhead.x, arrowhead.y);
