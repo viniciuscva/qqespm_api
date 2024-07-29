@@ -1,6 +1,6 @@
 const lineWidth = 2;
 const fontSize = 14;
-const rectPadding = 2;
+const rectPadding = 4;
 
 function generatePoints(numPoints, width, height, radius) {
   const centerX = width / 2;
