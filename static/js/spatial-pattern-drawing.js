@@ -34,6 +34,53 @@ function getConstraintLabel(edge) {
   return label;
 }
 
+function createRect(ctx, text, x, y) {
+  const textWidth = ctx.measureText(text).width;
+  return [
+    x - textWidth / 2 - rectPadding,
+    y - fontSize / 2 - rectPadding,
+    textWidth + 2 * rectPadding,
+    fontSize + 2 * rectPadding,
+  ];
+}
+
+function findIntersectionPoint(segment, rectangle) {
+  const [x1, y1, x2, y2] = segment;
+  const [x, y, width, height] = rectangle;
+  const [xMin, yMin, xMax, yMax] = [x, y, x + width, y + height];
+
+  function getIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+    const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (denominator === 0) return null;
+
+    const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
+    const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;
+
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+      return {
+        x: x1 + t * (x2 - x1),
+        y: y1 + t * (y2 - y1),
+      };
+    }
+
+    return null;
+  }
+
+  const edges = [
+    { x1: xMin, y1: yMin, x2: xMax, y2: yMin }, // Top edge
+    { x1: xMax, y1: yMin, x2: xMax, y2: yMax }, // Right edge
+    { x1: xMax, y1: yMax, x2: xMin, y2: yMax }, // Bottom edge
+    { x1: xMin, y1: yMax, x2: xMin, y2: yMin }, // Left edge
+  ];
+
+  for (const edge of edges) {
+    const intersection = getIntersection(x1, y1, x2, y2, edge.x1, edge.y1, edge.x2, edge.y2);
+    if (intersection) return intersection;
+  }
+
+  return null; // No intersection
+}
+
 function updateDrawing(canvas, spatialPattern) {
   const ctx = canvas.getContext("2d");
 
@@ -63,29 +110,37 @@ function updateDrawing(canvas, spatialPattern) {
 
     // Draw constraint label
     const label = getConstraintLabel(edge);
-    const textWidth = ctx.measureText(label).width;
-    const midpoint = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
-    const rect = [
-      midpoint.x - textWidth / 2 - rectPadding,
-      midpoint.y - fontSize / 2 - rectPadding,
-      textWidth + 2 * rectPadding,
-      fontSize + 2 * rectPadding,
-    ];
-    let angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-    if (angle > Math.PI / 2 || angle < -Math.PI / 2) {
-      angle -= Math.PI;
-    }
+    const [textX, textY] = [(p1.x + p2.x) / 2, (p1.y + p2.y) / 2];
+    const rect = createRect(ctx, label, textX, textY);
+    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    const textAngle = angle > Math.PI / 2 || angle < -Math.PI / 2 ? angle - Math.PI : angle;
 
     // Rotate canvas
-    ctx.translate(midpoint.x, midpoint.y);
-    ctx.rotate(angle);
-    ctx.translate(-midpoint.x, -midpoint.y);
+    ctx.translate(textX, textY);
+    ctx.rotate(textAngle);
+    ctx.translate(-textX, -textY);
     // Draw white rect (text background)
     ctx.fillStyle = "white";
     ctx.fillRect(...rect);
     // Draw text
     ctx.fillStyle = "black";
-    ctx.fillText(label, midpoint.x, midpoint.y);
+    ctx.fillText(label, textX, textY);
+    // Reset canvas
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    // Draw direction arrow
+    const p2rect = createRect(ctx, spatialPattern.vertices[edge.vj].keyword, p2.x, p2.y);
+    const arrowhead = findIntersectionPoint([p1.x, p1.y, p2.x, p2.y], p2rect);
+
+    // Translate and rotate canvas
+    ctx.translate(arrowhead.x, arrowhead.y);
+    ctx.rotate(angle);
+    // Draw arrow
+    ctx.beginPath();
+    ctx.lineTo(-fontSize, fontSize / 2);
+    ctx.lineTo(-fontSize, -fontSize / 2);
+    ctx.lineTo(0, 0);
+    ctx.fill();
     // Reset canvas
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   });
@@ -93,13 +148,7 @@ function updateDrawing(canvas, spatialPattern) {
   // Draw POI keywords
   points.forEach(({ x, y }, index) => {
     const { keyword } = spatialPattern.vertices[index];
-    const textWidth = ctx.measureText(keyword).width;
-    const rect = [
-      x - textWidth / 2 - rectPadding,
-      y - fontSize / 2 - rectPadding,
-      textWidth + 2 * rectPadding,
-      fontSize + 2 * rectPadding,
-    ];
+    const rect = createRect(ctx, keyword, x, y);
 
     // Draw white rect (text background)
     ctx.fillStyle = "white";
