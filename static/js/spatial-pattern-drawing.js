@@ -44,6 +44,20 @@ function createRect(ctx, text, x, y) {
   ];
 }
 
+function drawText(ctx, text, x, y, stroke) {
+  const rect = createRect(ctx, text, x, y);
+  // Draw white rect (text background)
+  ctx.fillStyle = "white";
+  ctx.fillRect(...rect);
+  // Draw rect border if requested
+  if (stroke) {
+    ctx.strokeRect(...rect);
+  }
+  // Draw text
+  ctx.fillStyle = "black";
+  ctx.fillText(text, x, y);
+}
+
 function findIntersectionPoint(segment, rectangle) {
   const [x1, y1, x2, y2] = segment;
   const [x, y, width, height] = rectangle;
@@ -98,53 +112,33 @@ function updateDrawing(canvas, spatialPattern) {
     // Draw constraint label
     const label = getConstraintLabel(edge);
     const [labelX, labelY] = [(p1.x + p2.x) / 2, (p1.y + p2.y) / 2];
-    const labelRect = createRect(ctx, label, labelX, labelY);
     const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
     const labelAngle = angle > Math.PI / 2 || angle < -Math.PI / 2 ? angle - Math.PI : angle;
 
-    // Rotate canvas
     ctx.translate(labelX, labelY);
     ctx.rotate(labelAngle);
     ctx.translate(-labelX, -labelY);
-    // Draw white rect (text background)
-    ctx.fillStyle = "white";
-    ctx.fillRect(...labelRect);
-    // Draw text
-    ctx.fillStyle = "black";
-    ctx.fillText(label, labelX, labelY);
-    // Reset canvas
+    drawText(ctx, label, labelX, labelY);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     // Draw direction arrow
     const p2KeywordRect = createRect(ctx, spatialPattern.vertices[edge.vj].keyword, p2.x, p2.y);
     const arrowhead = findIntersectionPoint([p1.x, p1.y, p2.x, p2.y], p2KeywordRect);
 
-    // Translate and rotate canvas
     ctx.translate(arrowhead.x, arrowhead.y);
     ctx.rotate(angle);
-    // Draw arrow
     ctx.beginPath();
     ctx.lineTo(-fontSize, fontSize / 2);
     ctx.lineTo(-fontSize, -fontSize / 2);
     ctx.lineTo(0, 0);
     ctx.fill();
-    // Reset canvas
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   });
 
   // Draw POI keywords
   points.forEach(({ x, y }, index) => {
     const { keyword } = spatialPattern.vertices[index];
-    const rect = createRect(ctx, keyword, x, y);
-
-    // Draw white rect (text background)
-    ctx.fillStyle = "white";
-    ctx.fillRect(...rect);
-    // Draw rect border
-    ctx.strokeRect(...rect);
-    // Draw text
-    ctx.fillStyle = "black";
-    ctx.fillText(keyword, x, y);
+    drawText(ctx, keyword, x, y, true);
   });
 }
 
