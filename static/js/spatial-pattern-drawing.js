@@ -27,15 +27,13 @@ function getConstraintLabel(edge) {
   } else if (edge.uij < Infinity) {
     label = `less than ${Math.round(edge.uij)}m`;
   }
-  if (edge.relation !== null) {
-    label += ` ${edge.relation}`;
-  }
 
-  return label;
+  return [label, edge.relation];
 }
 
 function createRect(ctx, text, x, y) {
   const textWidth = ctx.measureText(text).width;
+
   return [
     x - textWidth / 2 - rectPadding,
     y - fontSize / 2 - rectPadding,
@@ -46,6 +44,7 @@ function createRect(ctx, text, x, y) {
 
 function drawText(ctx, text, x, y, stroke) {
   const rect = createRect(ctx, text, x, y);
+
   // Draw white rect (text background)
   ctx.fillStyle = "white";
   ctx.fillRect(...rect);
@@ -102,7 +101,7 @@ function updateDrawing(canvas, spatialPattern) {
   );
 
   spatialPattern.edges.forEach((edge) => {
-    // Draw lines
+    // Draw line
     const [p1, p2] = [points[edge.vi], points[edge.vj]];
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
@@ -110,7 +109,7 @@ function updateDrawing(canvas, spatialPattern) {
     ctx.stroke();
 
     // Draw constraint label
-    const label = getConstraintLabel(edge);
+    const [label, relation] = getConstraintLabel(edge);
     const [labelX, labelY] = [(p1.x + p2.x) / 2, (p1.y + p2.y) / 2];
     const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
     const labelAngle = angle > Math.PI / 2 || angle < -Math.PI / 2 ? angle - Math.PI : angle;
@@ -119,6 +118,9 @@ function updateDrawing(canvas, spatialPattern) {
     ctx.rotate(labelAngle);
     ctx.translate(-labelX, -labelY);
     drawText(ctx, label, labelX, labelY);
+    if (relation !== null) {
+      drawText(ctx, relation, labelX, labelY + fontSize + rectPadding);
+    }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     // Draw direction arrow
