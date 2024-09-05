@@ -21,3 +21,7 @@ pip install networkx --upgrade
 The image bellow shows a screenshot of this application, with descriptive rectangles separating the main areas of the screen:
 
 ![qqespm_app_screenshot.png](qqespm_app_screenshot.png)
+
+## License
+
+The QQESPM algorithm used to perform this type of search is implemented within the file qqespm_module.py and is under QQESPM Algorithm Copyright © 2024 by [Carlos Vinicius A. M. Pontes](https://www.linkedin.com/in/vinicius-alves-mm/) licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/?ref=chooser-v1).
