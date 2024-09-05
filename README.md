@@ -18,6 +18,6 @@ pip install matplotlib==3.7.2
 pip install networkx --upgrade
 
 ## Main screen
-The image bellow shows a screenshot of this application:
+The image bellow shows a screenshot of this application, with descriptive rectangles separating the main areas of the screen:
 
 ![qqespm_app_screenshot.png](qqespm_app_screenshot.png)
